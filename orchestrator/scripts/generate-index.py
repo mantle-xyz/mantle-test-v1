@@ -184,7 +184,7 @@ function showPlan(name){{
     allFiles[mod].forEach(f=>{{
       const fname=f.split('/').pop();
       if(fname.startsWith(name+'-')){{
-        rows.push('<tr style="cursor:pointer" onclick="parent.showReport(\''+f+'\')"><td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:600">'+mod+'</td><td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;color:#2563eb">'+fname+'</td></tr>');
+        rows.push('<tr style="cursor:pointer" data-href="'+f+'"><td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:600">'+mod+'</td><td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;color:#2563eb">'+fname+'</td></tr>');
       }}
     }});
   }});
@@ -192,11 +192,21 @@ function showPlan(name){{
     rows.push('<tr><td colspan="2" style="padding:12px;color:#999;text-align:center">No reports found for this plan</td></tr>');
   }}
   const html='<html><body style="font-family:-apple-system,sans-serif;padding:20px"><h2 style="font-size:16px;margin-bottom:12px">Plan: '+name+'</h2><p style="color:#888;font-size:12px;margin-bottom:12px">Click a row to view the report</p><table style="border-collapse:collapse;width:100%"><tr style="background:#f8f9fa"><th style="text-align:left;padding:8px 12px;border-bottom:2px solid #e5e7eb;font-size:12px">Module</th><th style="text-align:left;padding:8px 12px;border-bottom:2px solid #e5e7eb;font-size:12px">Report</th></tr>'+rows.join('')+'</table></body></html>';
-  document.getElementById('viewer').src=URL.createObjectURL(new Blob([html],{{type:'text/html'}}));
-  document.getElementById('viewer').style.display='block';
+  const blob=new Blob([html],{{type:'text/html'}});
+  const frame=document.getElementById('viewer');
+  frame.src=URL.createObjectURL(blob);
+  frame.style.display='block';
   document.getElementById('empty').style.display='none';
   document.getElementById('path').textContent='Plan: '+name;
   history.replaceState(null,'','#plan:'+name);
+  // Attach click handlers to plan rows after iframe loads
+  frame.onload=function(){{
+    frame.contentDocument.querySelectorAll('tr[data-href]').forEach(function(tr){{
+      tr.addEventListener('click',function(){{
+        parent.showReport(tr.dataset.href);
+      }});
+    }});
+  }};
 }}
 
 document.getElementById('search').addEventListener('input',function(){{
