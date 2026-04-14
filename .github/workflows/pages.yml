@@ -138,8 +138,33 @@ jobs:
             <input type="text" class="search" id="search" placeholder="Search reports...">
           """)
 
+          # Build Plans section first
+          plans_dir = Path("plans")
+          if plans_dir.is_dir():
+              plan_files = sorted(
+                  [f for f in plans_dir.iterdir() if f.suffix == ".json"],
+                  key=lambda f: f.name, reverse=True
+              )
+              if plan_files:
+                  out.append('<div class="module-group" data-module="plans">')
+                  out.append('<button class="module-toggle" onclick="toggleModule(this)">')
+                  out.append('<span class="arrow">▼</span>')
+                  out.append('<span class="module-badge" style="background:#fef2f2;color:#991b1b">Test Plans</span>')
+                  out.append(f'<span class="module-count">{len(plan_files)}</span>')
+                  out.append('</button>')
+                  out.append(f'<ul class="file-list" style="max-height:{len(plan_files)*28+10}px">')
+                  for i, pf in enumerate(plan_files):
+                      import json as _json
+                      plan = _json.loads(pf.read_text())
+                      name = plan.get("name", pf.stem)
+                      tag = '<span class="latest">latest</span>' if i == 0 else ""
+                      out.append(f'<li><a href="#" onclick="loadPlan(event,\'{pf.name}\')" data-name="{name}">{pf.stem} — {name}{tag}</a></li>')
+                  out.append('</ul></div>')
+
           # Build sidebar modules
           for mod_dir in modules:
+              if mod_dir.name == "plans":
+                  continue
               mod_name = mod_dir.name
               style = get_style(mod_name)
               files = sorted(
@@ -182,6 +207,38 @@ jobs:
             btn.classList.toggle('collapsed');
             const list=btn.nextElementSibling;
             list.classList.toggle('collapsed');
+          }}
+          const plans={{}};
+          """)
+
+          # Embed plan data as JS object
+          if plans_dir.is_dir():
+              import json as _json
+              for pf in sorted(plans_dir.iterdir()):
+                  if pf.suffix == ".json":
+                      plan = _json.loads(pf.read_text())
+                      out.append(f"plans['{pf.name}']={_json.dumps(plan)};")
+
+          out.append("""
+          function loadPlan(e,filename){{
+            e.preventDefault();
+            const plan=plans[filename];
+            if(!plan)return;
+            const html=['<html><body style="font-family:-apple-system,sans-serif;padding:24px;background:#fafafa">'];
+            html.push('<h2 style="margin-bottom:8px">'+plan.name+'</h2>');
+            html.push('<p style="color:#666;font-size:13px;margin-bottom:16px">'+plan.timestamp+'</p>');
+            html.push('<table style="border-collapse:collapse;width:100%">');
+            html.push('<tr style="background:#f8f9fa"><th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb">Module</th><th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb">Report</th></tr>');
+            plan.reports.forEach(r=>{{
+              html.push('<tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;font-weight:600">'+r.module+'</td>');
+              html.push('<td style="padding:8px;border-bottom:1px solid #f0f0f0"><a href="'+r.file+'" target="_blank" style="color:#2563eb">'+r.file+'</a></td></tr>');
+            }});
+            html.push('</table></body></html>');
+            const blob=new Blob([html.join('')],{{type:'text/html'}});
+            document.getElementById('viewer').src=URL.createObjectURL(blob);
+            document.getElementById('viewer').style.display='block';
+            document.getElementById('placeholder').style.display='none';
+            document.getElementById('currentPath').textContent='Plan: '+plan.name;
           }}
           function loadReport(e,el){{
             e.preventDefault();
