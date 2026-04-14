@@ -121,11 +121,9 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 .hidden{{display:none!important}}
 
 .sidebar-footer{{padding:8px 12px;border-top:1px solid #f0f0f0;font-size:10px;color:#ccc;flex-shrink:0}}
-.sidebar-toggle{{position:absolute;top:50%;right:-14px;width:28px;height:28px;background:#fff;border:1px solid #ddd;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999;z-index:10;box-shadow:0 1px 3px rgba(0,0,0,0.1)}}
+.sidebar-toggle{{position:fixed;top:50%;left:300px;transform:translateX(-50%);width:28px;height:28px;background:#fff;border:1px solid #ddd;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.1);transition:left 0.2s}}
 .sidebar-toggle:hover{{background:#f5f5f5;color:#333}}
 .sidebar.collapsed-sidebar{{width:0;min-width:0;overflow:hidden;border-right:none}}
-.sidebar.collapsed-sidebar .sidebar-header,.sidebar.collapsed-sidebar .search,.sidebar.collapsed-sidebar .sidebar-content,.sidebar.collapsed-sidebar .sidebar-footer{{display:none}}
-.sidebar.collapsed-sidebar .sidebar-toggle{{right:-36px}}
 .resize-handle{{position:absolute;top:0;right:0;width:4px;height:100%;cursor:col-resize;background:transparent}}
 .resize-handle:hover{{background:#2563eb40}}
 
@@ -138,8 +136,8 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 </head>
 <body>
 
+<div class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">◀</div>
 <div class="sidebar" id="sidebar">
-  <div class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">◀</div>
   <div class="resize-handle" id="resizeHandle"></div>
   <div class="sidebar-header"><h1>Mantle Test Reports</h1></div>
   <input class="search" id="search" placeholder="Search..." type="text">
@@ -165,7 +163,9 @@ function toggleSidebar(){{
   const sb=document.getElementById('sidebar');
   const btn=document.getElementById('sidebarToggle');
   sb.classList.toggle('collapsed-sidebar');
-  btn.textContent=sb.classList.contains('collapsed-sidebar')?'▶':'◀';
+  const collapsed=sb.classList.contains('collapsed-sidebar');
+  btn.textContent=collapsed?'▶':'◀';
+  btn.style.left=collapsed?'14px':(sb.offsetWidth+'px');
 }}
 
 // Drag to resize sidebar
@@ -222,7 +222,8 @@ function showPlan(name){{
     allFiles[mod].forEach(f=>{{
       const fname=f.split('/').pop();
       if(fname.startsWith(name+'-')){{
-        rows.push('<tr style="cursor:pointer" data-href="'+f+'"><td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:600">'+mod+'</td><td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;color:#2563eb">'+fname+'</td></tr>');
+        const base=location.href.split('#')[0].replace(/index\\.html$/,'');
+        rows.push('<tr style="cursor:pointer;transition:background 0.1s" onmouseover="this.style.background=\\'#f8f9fa\\'" onmouseout="this.style.background=\\'\\'" onclick="window.top.showReport(\\''+f+'\\')"><td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:600">'+mod+'</td><td style="padding:8px 12px;border-bottom:1px solid #f0f0f0"><a href="'+base+f+'" style="color:#2563eb" onclick="event.stopPropagation()">'+fname+'</a></td></tr>');
       }}
     }});
   }});
@@ -237,14 +238,6 @@ function showPlan(name){{
   document.getElementById('empty').style.display='none';
   document.getElementById('path').textContent='Plan: '+name;
   history.replaceState(null,'','#plan:'+name);
-  // Attach click handlers to plan rows after iframe loads
-  frame.onload=function(){{
-    frame.contentDocument.querySelectorAll('tr[data-href]').forEach(function(tr){{
-      tr.addEventListener('click',function(){{
-        parent.showReport(tr.dataset.href);
-      }});
-    }});
-  }};
 }}
 
 document.getElementById('search').addEventListener('input',function(){{
