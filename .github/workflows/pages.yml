@@ -138,28 +138,50 @@ jobs:
             <input type="text" class="search" id="search" placeholder="Search reports...">
           """)
 
-          # Build Plans section first
+          # Collect all plan names from file prefixes and plans/*.json
+          import json as _json
+          plan_names = set()
           plans_dir = Path("plans")
+
+          # From plans/*.json
           if plans_dir.is_dir():
-              plan_files = sorted(
-                  [f for f in plans_dir.iterdir() if f.suffix == ".json"],
-                  key=lambda f: f.name, reverse=True
-              )
-              if plan_files:
-                  out.append('<div class="module-group" data-module="plans">')
-                  out.append('<button class="module-toggle" onclick="toggleModule(this)">')
-                  out.append('<span class="arrow">▼</span>')
-                  out.append('<span class="module-badge" style="background:#fef2f2;color:#991b1b">Test Plans</span>')
-                  out.append(f'<span class="module-count">{len(plan_files)}</span>')
-                  out.append('</button>')
-                  out.append(f'<ul class="file-list" style="max-height:{len(plan_files)*28+10}px">')
-                  for i, pf in enumerate(plan_files):
-                      import json as _json
-                      plan = _json.loads(pf.read_text())
-                      name = plan.get("name", pf.stem)
-                      tag = '<span class="latest">latest</span>' if i == 0 else ""
-                      out.append(f'<li><a href="#" onclick="loadPlan(event,\'{pf.name}\')" data-name="{name}">{pf.stem} — {name}{tag}</a></li>')
-                  out.append('</ul></div>')
+              for pf in plans_dir.iterdir():
+                  if pf.suffix == ".json":
+                      plan_names.add(pf.stem)
+
+          # From report filenames: <plan-name>-<timestamp>.html
+          for mod_dir in modules:
+              if mod_dir.name == "plans":
+                  continue
+              for f in mod_dir.iterdir():
+                  if f.is_file() and "-" in f.stem:
+                      # plan-name is everything before the last YYYYMMDD-HHMMSS
+                      parts = f.stem.rsplit("-", 2)
+                      if len(parts) >= 3 and len(parts[-2]) == 8 and len(parts[-1]) == 6:
+                          plan_name = "-".join(parts[:-2])
+                          if plan_name:
+                              plan_names.add(plan_name)
+
+          # Build Plans section
+          if plan_names:
+              sorted_plans = sorted(plan_names, reverse=True)
+              out.append('<div class="module-group" data-module="plans">')
+              out.append('<button class="module-toggle" onclick="toggleModule(this)">')
+              out.append('<span class="arrow">▼</span>')
+              out.append('<span class="module-badge" style="background:#fef2f2;color:#991b1b">Test Plans</span>')
+              out.append(f'<span class="module-count">{len(sorted_plans)}</span>')
+              out.append('</button>')
+              out.append(f'<ul class="file-list" style="max-height:{len(sorted_plans)*28+10}px">')
+              for i, pname in enumerate(sorted_plans):
+                  # Load description from plans/*.json if exists
+                  desc = pname
+                  pjson = plans_dir / f"{pname}.json"
+                  if pjson.exists():
+                      meta = _json.loads(pjson.read_text())
+                      desc = meta.get("description", pname) or pname
+                  tag = '<span class="latest">latest</span>' if i == 0 else ""
+                  out.append(f'<li><a href="#" onclick="loadPlanView(event,\'{pname}\')" data-name="{pname}">{pname}{tag}</a></li>')
+              out.append('</ul></div>')
 
           # Build sidebar modules
           for mod_dir in modules:
@@ -208,37 +230,45 @@ jobs:
             const list=btn.nextElementSibling;
             list.classList.toggle('collapsed');
           }}
-          const plans={{}};
           """)
 
-          # Embed plan data as JS object
-          if plans_dir.is_dir():
-              import json as _json
-              for pf in sorted(plans_dir.iterdir()):
-                  if pf.suffix == ".json":
-                      plan = _json.loads(pf.read_text())
-                      out.append(f"plans['{pf.name}']={_json.dumps(plan)};")
+          # Embed all file paths as JS for plan view lookup
+          all_files = {}
+          for mod_dir in modules:
+              if mod_dir.name == "plans":
+                  continue
+              mod_name = mod_dir.name
+              for f in sorted(mod_dir.iterdir(), key=lambda x: x.name, reverse=True):
+                  if f.is_file():
+                      if mod_name not in all_files:
+                          all_files[mod_name] = []
+                      all_files[mod_name].append(f"{mod_name}/{f.name}")
+          out.append(f"const allFiles={_json.dumps(all_files)};")
 
           out.append("""
-          function loadPlan(e,filename){{
+          function loadPlanView(e,planName){{
             e.preventDefault();
-            const plan=plans[filename];
-            if(!plan)return;
             const html=['<html><body style="font-family:-apple-system,sans-serif;padding:24px;background:#fafafa">'];
-            html.push('<h2 style="margin-bottom:8px">'+plan.name+'</h2>');
-            html.push('<p style="color:#666;font-size:13px;margin-bottom:16px">'+plan.timestamp+'</p>');
+            html.push('<h2 style="margin-bottom:16px">Plan: '+planName+'</h2>');
             html.push('<table style="border-collapse:collapse;width:100%">');
-            html.push('<tr style="background:#f8f9fa"><th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb">Module</th><th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb">Report</th></tr>');
-            plan.reports.forEach(r=>{{
-              html.push('<tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;font-weight:600">'+r.module+'</td>');
-              html.push('<td style="padding:8px;border-bottom:1px solid #f0f0f0"><a href="'+r.file+'" target="_blank" style="color:#2563eb">'+r.file+'</a></td></tr>');
+            html.push('<tr style="background:#f8f9fa"><th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb">Module</th><th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb">Report</th><th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb">Time</th></tr>');
+            Object.keys(allFiles).sort().forEach(mod=>{{
+              allFiles[mod].forEach(f=>{{
+                const fname=f.split('/').pop();
+                if(fname.startsWith(planName+'-')){{
+                  const time=fname.replace(planName+'-','').replace('.html','');
+                  html.push('<tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;font-weight:600">'+mod+'</td>');
+                  html.push('<td style="padding:8px;border-bottom:1px solid #f0f0f0"><a href="'+f+'" target="_blank" style="color:#2563eb">'+fname+'</a></td>');
+                  html.push('<td style="padding:8px;border-bottom:1px solid #f0f0f0;color:#999">'+time+'</td></tr>');
+                }}
+              }});
             }});
             html.push('</table></body></html>');
             const blob=new Blob([html.join('')],{{type:'text/html'}});
             document.getElementById('viewer').src=URL.createObjectURL(blob);
             document.getElementById('viewer').style.display='block';
             document.getElementById('placeholder').style.display='none';
-            document.getElementById('currentPath').textContent='Plan: '+plan.name;
+            document.getElementById('currentPath').textContent='Plan: '+planName;
           }}
           function loadReport(e,el){{
             e.preventDefault();

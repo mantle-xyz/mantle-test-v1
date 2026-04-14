@@ -1,87 +1,66 @@
 #!/usr/bin/env bash
-# Upload test reports to mantle-test-v1 reports directory.
+# Upload a test report to mantle-test-v1 reports directory.
 #
-# Structure: reports/<module>/<timestamp>.html
+# Structure: reports/<module>/<plan-name>-<timestamp>.html
 #
 # Usage:
-#   Single file:
-#     ./scripts/upload-report.sh <module> <report-file>
+#   With plan name:
+#     ./orchestrator/scripts/upload-report.sh <module> <report-file> --plan <plan-name>
 #
-#   Multiple files (e.g., op-acceptance with many testruns):
-#     ./scripts/upload-report.sh <module> <file1> <file2> ...
-#     ./scripts/upload-report.sh <module> path/to/testrun-*/results.html
-#
-#   Latest only:
-#     ./scripts/upload-report.sh <module> --latest <glob-pattern>
+#   Without plan name (manual upload):
+#     ./orchestrator/scripts/upload-report.sh <module> <report-file>
 #
 # Examples:
-#   ./scripts/upload-report.sh eest execution_results/report_execute.html
-#   ./scripts/upload-report.sh op-acceptance logs/testrun-*/results.html
-#   ./scripts/upload-report.sh op-acceptance --latest "logs/testrun-*/results.html"
+#   ./orchestrator/scripts/upload-report.sh eest report.html --plan arsia-upgrade
+#   ./orchestrator/scripts/upload-report.sh op-acceptance results.html --plan daily-qa
+#   ./orchestrator/scripts/upload-report.sh proxyd report.html
 
 set -euo pipefail
 
 if [ $# -lt 2 ]; then
-    echo "Usage:"
-    echo "  $0 <module> <report-file> [file2 ...]"
-    echo "  $0 <module> --latest <glob-pattern>"
+    echo "Usage: $0 <module> <report-file> [--plan <plan-name>]"
     echo ""
     echo "Examples:"
-    echo "  $0 eest execution_results/report_execute.html"
-    echo "  $0 op-acceptance logs/testrun-*/results.html"
-    echo "  $0 op-acceptance --latest 'logs/testrun-*/results.html'"
+    echo "  $0 eest ./report.html --plan arsia-upgrade"
+    echo "  $0 op-acceptance ./results.html --plan daily-qa"
+    echo "  $0 proxyd ./report.html"
     exit 1
 fi
 
 MODULE="$1"
-shift
+REPORT_FILE="$2"
+PLAN_NAME=""
+
+shift 2
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --plan) PLAN_NAME="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
+if [ ! -f "$REPORT_FILE" ]; then
+    echo "ERROR: $REPORT_FILE not found"
+    exit 1
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="${SCRIPT_DIR}/../.."
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 TARGET_DIR="${PROJECT_ROOT}/reports/${MODULE}"
 mkdir -p "${TARGET_DIR}"
 
-UPLOADED=0
-
-if [ "$1" = "--latest" ]; then
-    # Only upload the most recent file matching the pattern
-    shift
-    PATTERN="$1"
-    LATEST=$(ls -t $PATTERN 2>/dev/null | head -1)
-    if [ -z "$LATEST" ]; then
-        echo "ERROR: No files matching $PATTERN"
-        exit 1
-    fi
-    TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-    EXT="${LATEST##*.}"
-    cp "$LATEST" "${TARGET_DIR}/${TIMESTAMP}.${EXT}"
-    echo "  → reports/${MODULE}/${TIMESTAMP}.${EXT} (latest of pattern)"
-    UPLOADED=1
+EXT="${REPORT_FILE##*.}"
+if [ -n "$PLAN_NAME" ]; then
+    FILENAME="${PLAN_NAME}-${TIMESTAMP}.${EXT}"
 else
-    # Upload all specified files, each with its own timestamp
-    for f in "$@"; do
-        if [ ! -f "$f" ]; then
-            echo "  Skip: $f (not found)"
-            continue
-        fi
-        # Use file modification time as timestamp (preserve original time)
-        FILE_TIME=$(date -r "$f" +%Y%m%d-%H%M%S 2>/dev/null || date +%Y%m%d-%H%M%S)
-        EXT="${f##*.}"
-        DEST="${TARGET_DIR}/${FILE_TIME}.${EXT}"
-        # Avoid overwriting if same timestamp exists
-        if [ -f "$DEST" ]; then
-            FILE_TIME="${FILE_TIME}-$(( RANDOM % 1000 ))"
-            DEST="${TARGET_DIR}/${FILE_TIME}.${EXT}"
-        fi
-        cp "$f" "$DEST"
-        echo "  → reports/${MODULE}/${FILE_TIME}.${EXT}"
-        UPLOADED=$((UPLOADED + 1))
-    done
+    FILENAME="${TIMESTAMP}.${EXT}"
 fi
 
-echo ""
-echo "Uploaded ${UPLOADED} report(s) to reports/${MODULE}/"
+cp "$REPORT_FILE" "${TARGET_DIR}/${FILENAME}"
+echo "  → reports/${MODULE}/${FILENAME}"
+
 echo ""
 echo "To publish:"
 echo "  cd ${PROJECT_ROOT}"
-echo "  git add reports/ && git commit -m 'Add ${MODULE} reports' && git push"
+echo "  git add reports/ && git commit -m 'Add ${MODULE} report' && git push"
