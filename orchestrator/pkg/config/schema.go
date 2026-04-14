@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/module"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/module"
 )
 
 // Config represents the top-level orchestrator configuration loaded from YAML.

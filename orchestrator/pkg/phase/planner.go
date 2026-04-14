@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/module"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/module"
 )
 
 // Plan represents an ordered set of phases, each containing scheduled suite runs.

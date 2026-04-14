@@ -3,7 +3,7 @@ package parser
 import (
 	"encoding/json"
 
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/result"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/result"
 )
 
 // EESTParser parses EEST (ethereum/execution-spec-tests) JSON output.

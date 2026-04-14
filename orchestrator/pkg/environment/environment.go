@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/config"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/module"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/config"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/module"
 )
 
 // Environment provides connection info and lifecycle management for a test environment.

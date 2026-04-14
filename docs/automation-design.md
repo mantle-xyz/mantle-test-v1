@@ -45,7 +45,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.CROSS_REPO_TOKEN }}
-          repository: mantlenetworkio/mantle-execution-specs
+          repository: mantle-xyz/mantle-execution-specs
           event-type: upstream-change
           client-payload: |
             {
@@ -190,7 +190,7 @@ jobs:
       - name: Download EEST report
         uses: dawidd6/action-download-artifact@v6
         with:
-          repo: mantlenetworkio/mantle-execution-specs
+          repo: mantle-xyz/mantle-execution-specs
           workflow: mantle-test.yaml
           name: eest-report
           path: reports/latest/eest/
@@ -199,7 +199,7 @@ jobs:
       - name: Download execution-apis report
         uses: dawidd6/action-download-artifact@v6
         with:
-          repo: mantlenetworkio/mantle-execution-apis
+          repo: mantle-xyz/mantle-execution-apis
           workflow: mantle-test.yaml
           name: openrpc-spec
           path: reports/latest/execution-apis/
@@ -254,7 +254,7 @@ def push_to_lark(summary_path, webhook_url):
                     "actions": [{
                         "tag": "button",
                         "text": {"tag": "plain_text", "content": "View Full Report"},
-                        "url": "https://github.com/mantlenetworkio/mantle-test-v1/actions",
+                        "url": "https://github.com/mantle-xyz/mantle-test-v1/actions",
                         "type": "primary"
                     }]
                 }

@@ -67,7 +67,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.DISPATCH_TOKEN }}
-          repository: mantlenetworkio/mantle-execution-specs
+          repository: mantle-xyz/mantle-execution-specs
           event-type: mantle-test
           client-payload: |
             {
@@ -85,6 +85,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.DISPATCH_TOKEN }}
-          repository: mantlenetworkio/mantle-execution-apis
+          repository: mantle-xyz/mantle-execution-apis
           event-type: mantle-test
 

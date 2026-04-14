@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/result"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/result"
 )
 
 // SuiteRunner is a function that executes a single scheduled run and returns its result.

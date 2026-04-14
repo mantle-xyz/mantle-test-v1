@@ -43,7 +43,7 @@ cd orchestrator && go build -o bin/mantle-test ./cmd/mantle-test/
 
 ## Test Reports 测试报告
 
-Reports: `https://mantlenetworkio.github.io/mantle-test-v1/`
+Reports: `https://mantle-xyz.github.io/mantle-test-v1/`
 
 Structure: `reports/<module>/<timestamp>.html`
 

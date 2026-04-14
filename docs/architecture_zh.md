@@ -83,7 +83,7 @@ suites:
 | op-acceptance | mantle-v2 内或 optimism fork | 已有 Mantle 测试，CI 调用即可 |
 
 每个 fork 仓库：
-- `origin` → mantlenetworkio（push）
+- `origin` → mantle-xyz（push）
 - `upstream` → 官方仓库（通过 `git merge` 同步）
 - 有自己的 CI 独立运行测试
 - 可被编排器调用，也可独立运行

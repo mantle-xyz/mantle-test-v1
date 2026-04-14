@@ -8,8 +8,8 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/module"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/result"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/module"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/result"
 )
 
 // ExecRunner runs module test suites as shell commands.

@@ -3,8 +3,8 @@ package parser
 import (
 	"fmt"
 
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/module"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/result"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/module"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/result"
 )
 
 // ForFormat returns the appropriate parser for a result format.

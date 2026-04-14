@@ -210,7 +210,7 @@ The orchestrator CI (`mantle-test-v1/.github/workflows/test.yml`) triggers modul
 
 ## 9. Test Reports & GitHub Pages 测试报告
 
-Reports are published to GitHub Pages at: `https://mantlenetworkio.github.io/mantle-test-v1/`
+Reports are published to GitHub Pages at: `https://mantle-xyz.github.io/mantle-test-v1/`
 
 测试报告通过 GitHub Pages 自动发布。
 
@@ -259,7 +259,7 @@ reports/
     REPORT_FILE="execution_results/report_execute.html"  # 改成你的报告路径
 
     cd /tmp
-    git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantlenetworkio/mantle-test-v1.git
+    git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantle-xyz/mantle-test-v1.git
     cd mantle-test-v1
     mkdir -p reports/${MODULE}/
     cp ${{ github.workspace }}/${REPORT_FILE} reports/${MODULE}/${TIMESTAMP}.html
@@ -278,7 +278,7 @@ reports/
   if: always()
   run: |
     TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
-    cd /tmp && git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantlenetworkio/mantle-test-v1.git
+    cd /tmp && git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantle-xyz/mantle-test-v1.git
     cd mantle-test-v1
     mkdir -p reports/eest/
     cp ${{ github.workspace }}/execution_results/report_execute.html reports/eest/${TIMESTAMP}.html
@@ -297,7 +297,7 @@ reports/
   if: always()
   run: |
     TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
-    cd /tmp && git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantlenetworkio/mantle-test-v1.git
+    cd /tmp && git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantle-xyz/mantle-test-v1.git
     cd mantle-test-v1
     mkdir -p reports/execution-apis/
     cp ${{ github.workspace }}/speccheck.html reports/execution-apis/${TIMESTAMP}.html
@@ -318,7 +318,7 @@ reports/
   if: always()
   run: |
     TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
-    cd /tmp && git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantlenetworkio/mantle-test-v1.git
+    cd /tmp && git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantle-xyz/mantle-test-v1.git
     cd mantle-test-v1
     mkdir -p reports/op-e2e/
     cp ${{ github.workspace }}/op-e2e/report.html reports/op-e2e/${TIMESTAMP}.html
@@ -334,7 +334,7 @@ reports/
   run: |
     TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
     REPORT=$(ls -t ${{ github.workspace }}/op-acceptance-tests/logs/testrun-*/results.html | head -1)
-    cd /tmp && git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantlenetworkio/mantle-test-v1.git
+    cd /tmp && git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantle-xyz/mantle-test-v1.git
     cd mantle-test-v1
     mkdir -p reports/op-acceptance/
     cp "${REPORT}" reports/op-acceptance/${TIMESTAMP}.html
@@ -350,7 +350,7 @@ reports/
     TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
     MODULE="your-module-name"        # ← 改成你的模块名
     REPORT="path/to/report.html"     # ← 改成你的报告路径
-    cd /tmp && git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantlenetworkio/mantle-test-v1.git
+    cd /tmp && git clone https://x-access-token:${{ secrets.CROSS_REPO_TOKEN }}@github.com/mantle-xyz/mantle-test-v1.git
     cd mantle-test-v1
     mkdir -p reports/${MODULE}/
     cp ${{ github.workspace }}/${REPORT} reports/${MODULE}/${TIMESTAMP}.html
@@ -383,7 +383,7 @@ reports/
   uses: peter-evans/repository-dispatch@v3
   with:
     token: ${{ secrets.CROSS_REPO_TOKEN }}
-    repository: mantlenetworkio/mantle-test-v1
+    repository: mantle-xyz/mantle-test-v1
     event-type: module-ci-complete
     client-payload: |
       {

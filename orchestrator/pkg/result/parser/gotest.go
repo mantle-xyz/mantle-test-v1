@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/result"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/result"
 )
 
 // GoTestParser parses `go test -json` output.

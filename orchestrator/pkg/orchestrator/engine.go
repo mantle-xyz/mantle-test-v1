@@ -7,13 +7,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/adapter"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/config"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/environment"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/module"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/phase"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/result"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/result/parser"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/adapter"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/config"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/environment"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/module"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/phase"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/result"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/result/parser"
 )
 
 // Engine is the top-level orchestrator that wires config, modules, environments, and execution.

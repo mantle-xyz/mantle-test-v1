@@ -1,4 +1,4 @@
-module github.com/mantlenetworkio/mantle-test/orchestrator
+module github.com/mantle-xyz/mantle-test/orchestrator
 
 go 1.25.4
 

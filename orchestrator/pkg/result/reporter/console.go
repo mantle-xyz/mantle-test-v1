@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/result"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/result"
 )
 
 // ConsoleReporter writes a human-readable summary to an io.Writer.

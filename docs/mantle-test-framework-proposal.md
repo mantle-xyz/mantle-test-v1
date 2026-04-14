@@ -247,7 +247,7 @@ func TestOperatorFeeDeduction(t *testing.T) {
 ```yaml
 name: my-new-module
 description: 我的新测试模块
-repo: mantlenetworkio/my-module
+repo: mantle-xyz/my-module
 
 suites:
   - name: my-tests
@@ -480,8 +480,8 @@ EEST 5000+ 用例已覆盖，精度更高（验证每个 storage slot、每个 w
 
 | 优先级 | 任务 |
 |--------|------|
-| P0 | EEST fork 仓库推到 mantlenetworkio + CI |
-| P0 | execution-apis fork 仓库推到 mantlenetworkio + CI |
+| P0 | EEST fork 仓库推到 mantle-xyz + CI |
+| P0 | execution-apis fork 仓库推到 mantle-xyz + CI |
 | P0 | EEST 全量测试跑通（frontier → cancun） |
 | P1 | execution-apis rpctestgen 适配远程 RPC |
 | P1 | op-acceptance 新增 Mantle gate（operator fee, gas oracle, DA footprint） |

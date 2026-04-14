@@ -10,10 +10,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/config"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/module"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/orchestrator"
-	"github.com/mantlenetworkio/mantle-test/orchestrator/pkg/phase"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/config"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/module"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/orchestrator"
+	"github.com/mantle-xyz/mantle-test/orchestrator/pkg/phase"
 )
 
 func main() {

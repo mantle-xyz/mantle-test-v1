@@ -82,7 +82,7 @@ See [Data Flow Diagram](images/data-flow.svg) above.
 | mantle-op-acceptance-tests | optimism/op-acceptance-tests | mantle/main | Acceptance tests + Mantle gates |
 
 Each fork:
-- `origin` → mantlenetworkio (push)
+- `origin` → mantle-xyz (push)
 - `upstream` → official repo (sync via `git merge`)
 - Has its own CI for running tests independently
 - Can be invoked by orchestrator or run standalone
