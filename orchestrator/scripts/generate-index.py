@@ -42,15 +42,7 @@ def main():
             if pf.suffix == ".json":
                 plans[pf.stem] = json.loads(pf.read_text())
 
-    # Also detect plan names from file prefixes
-    for mod, files in modules.items():
-        for f in files:
-            fname = f.split("/")[-1]
-            parts = fname.rsplit("-", 2)
-            if len(parts) >= 3 and len(parts[-2]) == 8 and len(parts[-1].replace(".html","")) == 6:
-                pname = "-".join(parts[:-2])
-                if pname and pname not in plans:
-                    plans[pname] = {"name": pname, "description": pname}
+    # Plans only come from plans/*.json — no auto-detection from filenames
 
     # Build sidebar HTML
     sidebar_items = []
