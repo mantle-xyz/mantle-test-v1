@@ -71,6 +71,7 @@ def main():
     sidebar_html = ""
     for i, (label, color, bg, items, count) in enumerate(sidebar_items):
         collapsed = "collapsed" if i > 0 else ""
+        items_style = ' style="display:none"' if i > 0 else ""
         sidebar_html += f"""
         <div class="group">
           <div class="group-header {collapsed}" onclick="toggle(this)">
@@ -78,7 +79,7 @@ def main():
             <span class="badge" style="background:{bg};color:{color}">{label}</span>
             <span class="count">{count}</span>
           </div>
-          <ul class="items">{items}</ul>
+          <ul class="items"{items_style}>{items}</ul>
         </div>"""
 
     all_files_json = json.dumps(modules)
@@ -153,6 +154,8 @@ const allFiles={all_files_json};
 
 function toggle(el){{
   el.classList.toggle('collapsed');
+  const list=el.nextElementSibling;
+  if(list)list.style.display=el.classList.contains('collapsed')?'none':'block';
 }}
 
 function showReport(href){{
