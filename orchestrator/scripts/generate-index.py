@@ -165,12 +165,23 @@ function toggle(el){{
 
 function showReport(href){{
   document.querySelectorAll('.items a').forEach(a=>a.classList.remove('active'));
-  event.target.classList.add('active');
+  if(event&&event.target)event.target.classList.add('active');
   document.getElementById('viewer').src=href;
   document.getElementById('viewer').style.display='block';
   document.getElementById('empty').style.display='none';
   document.getElementById('path').textContent=href;
+  history.replaceState(null,'','#'+href);
 }}
+
+// Load from hash on page load (supports direct linking / refresh)
+window.addEventListener('load',function(){{
+  const hash=location.hash.slice(1);
+  if(hash&&!hash.startsWith('plan:')){{
+    showReport(hash);
+  }}else if(hash.startsWith('plan:')){{
+    showPlan(hash.slice(5));
+  }}
+}});
 
 function showPlan(name){{
   const rows=[];
@@ -190,6 +201,7 @@ function showPlan(name){{
   document.getElementById('viewer').style.display='block';
   document.getElementById('empty').style.display='none';
   document.getElementById('path').textContent='Plan: '+name;
+  history.replaceState(null,'','#plan:'+name);
 }}
 
 document.getElementById('search').addEventListener('input',function(){{
