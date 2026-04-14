@@ -122,5 +122,6 @@ mantle-test-v1/
 - [Migration Plan](docs/migration-plan.md) — chainregression 迁移计划（每个文件的迁移目标 + 执行计划）
 - [Automation Design](docs/automation-design.md) — 自动化：代码变更触发测试、失败阻断合并、报告推送 Lark
 - [Industry Comparison](docs/industry-comparison.md) — OP Stack 公链测试实践对比（Optimism / Base / Mantle）
+- [Module Onboarding](docs/module-onboarding.md) — 完整接入一个新模块的步骤（含 proxyd 示例）
 - [FAQ](docs/faq.md) — 常见问题：EEST/execution-apis/适配/Hive/迁移
 - [Usage Guide](docs/usage.md) — How to run, modify tests, CI setup
