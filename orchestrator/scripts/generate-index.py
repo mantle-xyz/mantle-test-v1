@@ -96,10 +96,10 @@ def main():
 html,body{{height:100%;overflow:hidden}}
 body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;background:#f5f5f5;color:#333}}
 
-.sidebar{{width:260px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;height:100vh;overflow:hidden}}
+.sidebar{{width:300px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative;transition:width 0.2s;flex-shrink:0}}
 .sidebar-header{{padding:14px 16px 10px;border-bottom:1px solid #f0f0f0;flex-shrink:0}}
-.sidebar-header h1{{font-size:15px;font-weight:700}}
-.search{{margin:10px 12px;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;outline:none;width:calc(100% - 24px)}}
+.sidebar-header h1{{font-size:18px;font-weight:700}}
+.search{{margin:10px 12px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none;width:calc(100% - 24px)}}
 .search:focus{{border-color:#2563eb}}
 .sidebar-content{{flex:1;overflow-y:auto;padding-bottom:40px}}
 
@@ -108,19 +108,26 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 .group-header:hover{{background:#fafafa}}
 .chevron{{width:16px;height:16px;margin-right:4px;transition:transform .15s;flex-shrink:0;color:#999}}
 .group-header.collapsed .chevron{{transform:rotate(-90deg)}}
-.badge{{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}}
-.count{{margin-left:auto;font-size:11px;color:#bbb}}
+.badge{{padding:3px 10px;border-radius:10px;font-size:14px;font-weight:600}}
+.count{{margin-left:auto;font-size:13px;color:#bbb}}
 
 .items{{list-style:none;overflow:hidden;transition:max-height .2s ease}}
 .group-header.collapsed+.items{{max-height:0!important;overflow:hidden}}
 .items li{{padding:1px 0}}
-.items a{{display:block;padding:4px 12px 4px 36px;font-size:12px;color:#555;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+.items a{{display:block;padding:6px 12px 6px 36px;font-size:14px;color:#555;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 .items a:hover{{background:#f8f9fa;color:#2563eb}}
 .items a.active{{background:#eff6ff;color:#1e40af;font-weight:600}}
-.tag{{display:inline-block;padding:0 4px;border-radius:3px;font-size:9px;font-weight:700;background:#dcfce7;color:#166534;vertical-align:middle;margin-left:4px}}
+.tag{{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700;background:#dcfce7;color:#166534;vertical-align:middle;margin-left:4px}}
 .hidden{{display:none!important}}
 
 .sidebar-footer{{padding:8px 12px;border-top:1px solid #f0f0f0;font-size:10px;color:#ccc;flex-shrink:0}}
+.sidebar-toggle{{position:absolute;top:50%;right:-14px;width:28px;height:28px;background:#fff;border:1px solid #ddd;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999;z-index:10;box-shadow:0 1px 3px rgba(0,0,0,0.1)}}
+.sidebar-toggle:hover{{background:#f5f5f5;color:#333}}
+.sidebar.collapsed-sidebar{{width:0;min-width:0;overflow:hidden;border-right:none}}
+.sidebar.collapsed-sidebar .sidebar-header,.sidebar.collapsed-sidebar .search,.sidebar.collapsed-sidebar .sidebar-content,.sidebar.collapsed-sidebar .sidebar-footer{{display:none}}
+.sidebar.collapsed-sidebar .sidebar-toggle{{right:-36px}}
+.resize-handle{{position:absolute;top:0;right:0;width:4px;height:100%;cursor:col-resize;background:transparent}}
+.resize-handle:hover{{background:#2563eb40}}
 
 .main{{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}}
 .toolbar{{padding:6px 16px;background:#fff;border-bottom:1px solid #e5e7eb;font-size:12px;color:#888;flex-shrink:0;display:flex;align-items:center;gap:8px}}
@@ -131,7 +138,9 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 </head>
 <body>
 
-<div class="sidebar">
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">◀</div>
+  <div class="resize-handle" id="resizeHandle"></div>
   <div class="sidebar-header"><h1>Mantle Test Reports</h1></div>
   <input class="search" id="search" placeholder="Search..." type="text">
   <div class="sidebar-content">
@@ -151,6 +160,35 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 
 <script>
 const allFiles={all_files_json};
+
+function toggleSidebar(){{
+  const sb=document.getElementById('sidebar');
+  const btn=document.getElementById('sidebarToggle');
+  sb.classList.toggle('collapsed-sidebar');
+  btn.textContent=sb.classList.contains('collapsed-sidebar')?'▶':'◀';
+}}
+
+// Drag to resize sidebar
+(function(){{
+  const handle=document.getElementById('resizeHandle');
+  const sb=document.getElementById('sidebar');
+  let startX,startW;
+  handle.addEventListener('mousedown',function(e){{
+    startX=e.clientX;
+    startW=sb.offsetWidth;
+    document.addEventListener('mousemove',onDrag);
+    document.addEventListener('mouseup',stopDrag);
+    e.preventDefault();
+  }});
+  function onDrag(e){{
+    const w=Math.max(200,Math.min(600,startW+(e.clientX-startX)));
+    sb.style.width=w+'px';
+  }}
+  function stopDrag(){{
+    document.removeEventListener('mousemove',onDrag);
+    document.removeEventListener('mouseup',stopDrag);
+  }}
+}})();
 
 function toggle(el){{
   el.classList.toggle('collapsed');
