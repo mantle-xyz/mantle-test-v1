@@ -1,6 +1,10 @@
 name: execution-apis
 description: RPC conformance tests via execution-apis (rpctestgen + speccheck)
-repo: mantle-execution-apis
+
+source:
+  repo: https://github.com/mantle-xyz/mantle-execution-apis.git
+  branch: mantle/main
+  path: mantle-execution-apis
 
 suites:
   - name: rpc-conformance

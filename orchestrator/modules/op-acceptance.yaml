@@ -1,6 +1,10 @@
 name: op-acceptance
 description: OP Stack acceptance tests with Mantle gates (already in mantle-v2)
-repo: mantle-v2
+
+source:
+  repo: https://github.com/mantlenetworkio/mantle-v2.git
+  branch: develop
+  path: mantle-v2
 
 suites:
   - name: base-gate
