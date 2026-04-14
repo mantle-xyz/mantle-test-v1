@@ -121,10 +121,14 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 .hidden{{display:none!important}}
 
 .sidebar-footer{{padding:8px 12px;border-top:1px solid #f0f0f0;font-size:10px;color:#ccc;flex-shrink:0}}
-.sidebar-toggle{{width:100%;padding:8px;border:none;border-top:1px solid #f0f0f0;background:#fff;cursor:pointer;font-size:13px;color:#999;text-align:center;flex-shrink:0}}
-.sidebar-toggle:hover{{background:#f5f5f5;color:#333}}
 .sidebar.collapsed-sidebar{{width:40px;min-width:40px;overflow:hidden}}
-.sidebar.collapsed-sidebar .sidebar-header,.sidebar.collapsed-sidebar .search,.sidebar.collapsed-sidebar .sidebar-content,.sidebar.collapsed-sidebar .sidebar-footer{{display:none}}
+.sidebar.collapsed-sidebar .sidebar-header,.sidebar.collapsed-sidebar .search,.sidebar.collapsed-sidebar .sidebar-content,.sidebar.collapsed-sidebar .resize-handle{{display:none}}
+.sidebar-collapse-btn{{width:100%;padding:10px 0;border:none;border-top:1px solid #f0f0f0;background:#fff;cursor:pointer;font-size:12px;color:#999;flex-shrink:0}}
+.sidebar-collapse-btn:hover{{background:#f5f5f5;color:#333}}
+.sidebar-expand-btn{{display:none;width:100%;height:100%;border:none;background:#fff;cursor:pointer;font-size:18px;color:#999;flex:1}}
+.sidebar-expand-btn:hover{{background:#f5f5f5;color:#2563eb}}
+.sidebar.collapsed-sidebar .sidebar-collapse-btn{{display:none}}
+.sidebar.collapsed-sidebar .sidebar-expand-btn{{display:flex;align-items:center;justify-content:center}}
 .resize-handle{{position:absolute;top:0;right:0;width:4px;height:100%;cursor:col-resize;background:transparent}}
 .resize-handle:hover{{background:#2563eb40}}
 
@@ -144,8 +148,8 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   <div class="sidebar-content">
     {sidebar_html}
   </div>
-  <div class="sidebar-footer">Updated: {now}</div>
-  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">◀ Collapse</button>
+  <button class="sidebar-collapse-btn" onclick="toggleSidebar()">◀ Collapse</button>
+  <button class="sidebar-expand-btn" onclick="toggleSidebar()">▶</button>
 </div>
 
 <div class="main">
@@ -164,14 +168,14 @@ const allFiles={all_files_json};
 let lastWidth=300;
 function toggleSidebar(){{
   const sb=document.getElementById('sidebar');
-  const btn=document.getElementById('sidebarToggle');
-  if(!sb.classList.contains('collapsed-sidebar')){{
-    lastWidth=sb.offsetWidth;  // remember current width before collapse
+  if(sb.classList.contains('collapsed-sidebar')){{
+    sb.classList.remove('collapsed-sidebar');
+    sb.style.width=lastWidth+'px';
+  }}else{{
+    lastWidth=sb.offsetWidth;
+    sb.classList.add('collapsed-sidebar');
+    sb.style.width='';
   }}
-  sb.classList.toggle('collapsed-sidebar');
-  const collapsed=sb.classList.contains('collapsed-sidebar');
-  btn.textContent=collapsed?'▶':'◀ Collapse';
-  if(!collapsed)sb.style.width=lastWidth+'px';  // restore previous width
 }}
 
 // Drag to resize sidebar
