@@ -1,0 +1,161 @@
+name: Deploy Reports to GitHub Pages
+
+on:
+  # reports/ 有变更时自动部署
+  push:
+    branches: ["main"]
+    paths: ["reports/**"]
+  # 其他模块 CI 通过 dispatch 触发收集
+  repository_dispatch:
+    types: [module-ci-complete]
+  # 手动触发
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Collect reports from dispatch events (module CI → artifact → download → commit)
+  collect:
+    if: github.event_name == 'repository_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download module report
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          repo: ${{ github.event.client_payload.repo }}
+          workflow: ${{ github.event.client_payload.workflow }}
+          name: ${{ github.event.client_payload.artifact }}
+          path: /tmp/report/
+          github_token: ${{ secrets.CROSS_REPO_TOKEN }}
+
+      - name: Commit report
+        run: |
+          MODULE="${{ github.event.client_payload.module }}"
+          mkdir -p reports/${MODULE}/
+
+          # Find all HTML reports in downloaded artifact
+          COUNT=0
+          find /tmp/report -name "*.html" -type f | while read f; do
+            # Use file modification time as timestamp
+            FILE_TIME=$(date -r "$f" -u +%Y%m%d-%H%M%S 2>/dev/null || date -u +%Y%m%d-%H%M%S)
+            DEST="reports/${MODULE}/${FILE_TIME}.html"
+            # Avoid collision
+            [ -f "$DEST" ] && DEST="reports/${MODULE}/${FILE_TIME}-${COUNT}.html"
+            cp "$f" "$DEST"
+            COUNT=$((COUNT + 1))
+            echo "  → $DEST"
+          done
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/
+          if git diff --cached --quiet; then
+            echo "No new reports"
+          else
+            git commit -m "Add ${MODULE} report ${TIMESTAMP}"
+            git push
+          fi
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate index.html
+        run: |
+          cd reports
+          python3 << 'PYSCRIPT'
+          import os
+          from pathlib import Path
+          from datetime import datetime
+
+          # Structure: reports/<module>/<timestamp>.html
+          MODULE_STYLE = {
+              "eest": {"label": "EEST (EVM Conformance)", "color": "#1e40af", "bg": "#eff6ff"},
+              "execution-apis": {"label": "execution-apis (RPC)", "color": "#92400e", "bg": "#fffbeb"},
+              "op-e2e": {"label": "op-e2e", "color": "#166534", "bg": "#f0fdf4"},
+              "op-acceptance": {"label": "op-acceptance", "color": "#7e22ce", "bg": "#fdf4ff"},
+          }
+
+          def get_style(module_name):
+              return MODULE_STYLE.get(module_name, {"label": module_name, "color": "#666", "bg": "#f5f5f5"})
+
+          # Discover modules (top-level directories)
+          modules = sorted([d for d in Path(".").iterdir() if d.is_dir() and not d.name.startswith(".")])
+
+          out = []
+          out.append("""<!DOCTYPE html>
+          <html lang="en"><head><meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Mantle Test Reports</title>
+          <style>
+            *{margin:0;padding:0;box-sizing:border-box}
+            body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:960px;margin:0 auto;padding:24px;background:#fafafa;color:#333}
+            h1{font-size:24px;margin-bottom:4px}
+            .sub{color:#666;font-size:14px;margin-bottom:24px}
+            .module-section{background:#fff;border-radius:8px;padding:16px 20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+            .module-header{display:inline-block;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600;margin-bottom:10px}
+            .reports{list-style:none;padding:0}
+            .reports li{padding:5px 0;border-bottom:1px solid #f5f5f5;display:flex;justify-content:space-between;align-items:center}
+            .reports li:last-child{border-bottom:none}
+            .reports a{color:#2563eb;text-decoration:none;font-size:13px}
+            .reports a:hover{text-decoration:underline}
+            .latest-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#dcfce7;color:#166534;margin-left:8px}
+            .time{color:#999;font-size:12px}
+            footer{text-align:center;color:#999;font-size:12px;margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb}
+          </style></head><body>
+          <h1>Mantle Test Reports</h1>
+          <p class="sub">Auto-generated from CI test results. Each module's reports sorted by time (newest first).</p>""")
+
+          for mod_dir in modules:
+              mod_name = mod_dir.name
+              style = get_style(mod_name)
+
+              # Get all report files, sorted newest first
+              files = sorted(
+                  [f for f in mod_dir.iterdir() if f.is_file() and not f.name.startswith(".")],
+                  key=lambda f: f.name, reverse=True
+              )
+
+              if not files:
+                  continue
+
+              out.append(f'<div class="module-section">')
+              out.append(f'<span class="module-header" style="background:{style["bg"]};color:{style["color"]}">{style["label"]}</span>')
+              out.append(f'<span class="time" style="margin-left:8px">{len(files)} reports</span>')
+              out.append('<ul class="reports">')
+
+              for i, f in enumerate(files):
+                  href = f"{mod_name}/{f.name}"
+                  tag = '<span class="latest-tag">latest</span>' if i == 0 else ""
+                  out.append(f'<li><a href="{href}">{f.name}</a>{tag}</li>')
+
+              out.append('</ul></div>')
+
+          out.append(f'<footer>Mantle Test Framework — Last updated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")}</footer></body></html>')
+          Path("index.html").write_text("\n".join(out))
+          print(f"Generated index.html with {len(modules)} modules")
+          PYSCRIPT
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'reports'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

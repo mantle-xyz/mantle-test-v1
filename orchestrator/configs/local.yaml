@@ -1,0 +1,11 @@
+environment:
+  type: unit
+
+modules:
+  dir: "modules/"
+
+execution:
+  phases: [unit]
+  parallel: 4
+  fail_fast: false
+  output: [console]

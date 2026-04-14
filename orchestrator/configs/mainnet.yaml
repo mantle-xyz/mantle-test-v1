@@ -1,0 +1,14 @@
+environment:
+  type: mainnet
+  l2_rpc_url: "${MAINNET_L2_RPC_URL}"
+  chain_id: 5000
+
+modules:
+  dir: "modules/"
+  filter: [evm-conformance]
+
+execution:
+  phases: [e2e, acceptance]
+  parallel: 1
+  fail_fast: false
+  output: [console, json]

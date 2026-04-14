@@ -1,0 +1,15 @@
+name: execution-apis
+description: RPC conformance tests via execution-apis (rpctestgen + speccheck)
+repo: mantle-execution-apis
+
+suites:
+  - name: rpc-conformance
+    phase: e2e
+    environments: [localchain, qa, mainnet]
+    command: |
+      cd ${APIS_DIR:-../mantle-execution-apis} &&
+      make tools &&
+      ./tools/speccheck -v
+    env_vars: [APIS_DIR]
+    result_format: gotest-json
+    timeout: 10m

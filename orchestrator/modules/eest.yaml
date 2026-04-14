@@ -1,0 +1,24 @@
+name: eest
+description: EVM conformance tests via EEST (ethereum/execution-specs)
+repo: mantle-execution-specs
+
+suites:
+  - name: evm-conformance
+    phase: e2e
+    environments: [localchain, qa]
+    command: |
+      cd ${SPECS_DIR:-../mantle-execution-specs} &&
+      uv run execute remote
+        --fork=${FORK_NAME:-Cancun}
+        --rpc-endpoint=${L2_RPC_URL}
+        --chain-id=${L2_CHAIN_ID}
+        --rpc-seed-key=${SEED_KEY}
+        --l2-funding-overhead=auto
+        --l2-force-min-gas-price
+        --skip-cleanup
+        --seed-account-sweep-amount=10000000000000000000
+        --deselect=tests/cancun/eip4844
+        ${EEST_EXTRA_ARGS:-}
+    env_vars: [L2_RPC_URL, L2_CHAIN_ID, SEED_KEY, FORK_NAME, SPECS_DIR, EEST_EXTRA_ARGS]
+    result_format: eest-json
+    timeout: 120m

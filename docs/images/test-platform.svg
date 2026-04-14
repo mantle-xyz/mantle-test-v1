@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 600" font-family="system-ui, -apple-system, sans-serif" font-size="13">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#666"/>
+    </marker>
+  </defs>
+
+  <rect width="920" height="600" fill="#fafafa" rx="12"/>
+  <text x="460" y="30" text-anchor="middle" font-size="18" font-weight="700" fill="#1a1a1a">Mantle Test Platform — Architecture</text>
+
+  <!-- Orchestrator -->
+  <rect x="250" y="50" width="420" height="70" rx="10" fill="#2563eb" stroke="#1d4ed8"/>
+  <text x="460" y="78" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">mantle-test-v1 (Orchestrator)</text>
+  <text x="460" y="98" text-anchor="middle" fill="#bfdbfe" font-size="12">调度 · 环境管理 · 报告收集</text>
+  <text x="460" y="112" text-anchor="middle" fill="#bfdbfe" font-size="12">Schedule · Env Mgmt · Report Collection</text>
+
+  <!-- Module Plugin Interface -->
+  <rect x="150" y="140" width="620" height="36" rx="6" fill="#fefce8" stroke="#fde047"/>
+  <text x="460" y="163" text-anchor="middle" font-size="13" fill="#854d0e">Module Plugin Interface (YAML Manifest → shell command → result file)</text>
+
+  <!-- Arrows from orchestrator to interface -->
+  <line x1="460" y1="120" x2="460" y2="140" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Current Modules -->
+  <text x="30" y="205" font-size="14" font-weight="700" fill="#333">Current Modules 当前模块</text>
+
+  <!-- EEST -->
+  <rect x="30" y="215" width="200" height="100" rx="8" fill="#eff6ff" stroke="#60a5fa" stroke-width="2"/>
+  <text x="130" y="238" text-anchor="middle" font-weight="700" fill="#1e40af" font-size="13">EEST</text>
+  <text x="130" y="254" text-anchor="middle" font-size="11" fill="#666">EVM Conformance</text>
+  <text x="130" y="270" text-anchor="middle" font-size="11" fill="#666">5000+ test fixtures</text>
+  <rect x="45" y="280" width="70" height="20" rx="4" fill="#dcfce7"/>
+  <text x="80" y="294" text-anchor="middle" font-size="10" fill="#166534">✅ Adapted</text>
+  <rect x="125" y="280" width="90" height="20" rx="4" fill="#f0f0f0"/>
+  <text x="170" y="294" text-anchor="middle" font-size="10" fill="#666">Fork Repo</text>
+
+  <!-- execution-apis -->
+  <rect x="245" y="215" width="200" height="100" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+  <text x="345" y="238" text-anchor="middle" font-weight="700" fill="#92400e" font-size="13">execution-apis</text>
+  <text x="345" y="254" text-anchor="middle" font-size="11" fill="#666">RPC Conformance</text>
+  <text x="345" y="270" text-anchor="middle" font-size="11" fill="#666">221 semantic tests</text>
+  <rect x="260" y="280" width="80" height="20" rx="4" fill="#fef9c3"/>
+  <text x="300" y="294" text-anchor="middle" font-size="10" fill="#854d0e">⚠️ Partial</text>
+  <rect x="350" y="280" width="90" height="20" rx="4" fill="#f0f0f0"/>
+  <text x="395" y="294" text-anchor="middle" font-size="10" fill="#666">Fork Repo</text>
+
+  <!-- op-e2e -->
+  <rect x="460" y="215" width="200" height="100" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+  <text x="560" y="238" text-anchor="middle" font-weight="700" fill="#166534" font-size="13">op-e2e</text>
+  <text x="560" y="254" text-anchor="middle" font-size="11" fill="#666">OP Stack E2E</text>
+  <text x="560" y="270" text-anchor="middle" font-size="11" fill="#666">173 test files</text>
+  <rect x="475" y="280" width="70" height="20" rx="4" fill="#dcfce7"/>
+  <text x="510" y="294" text-anchor="middle" font-size="10" fill="#166534">✅ Ready</text>
+  <rect x="555" y="280" width="90" height="20" rx="4" fill="#f0f0f0"/>
+  <text x="600" y="294" text-anchor="middle" font-size="10" fill="#666">In mantle-v2</text>
+
+  <!-- op-acceptance -->
+  <rect x="675" y="215" width="215" height="100" rx="8" fill="#fdf4ff" stroke="#c084fc" stroke-width="2"/>
+  <text x="782" y="238" text-anchor="middle" font-weight="700" fill="#7e22ce" font-size="13">op-acceptance</text>
+  <text x="782" y="254" text-anchor="middle" font-size="11" fill="#666">Acceptance Tests</text>
+  <text x="782" y="270" text-anchor="middle" font-size="11" fill="#666">Gate-based validation</text>
+  <rect x="690" y="280" width="80" height="20" rx="4" fill="#fae8ff"/>
+  <text x="730" y="294" text-anchor="middle" font-size="10" fill="#7e22ce">🔲 To Fork</text>
+  <rect x="780" y="280" width="100" height="20" rx="4" fill="#f0f0f0"/>
+  <text x="830" y="294" text-anchor="middle" font-size="10" fill="#666">+ Mantle Gate</text>
+
+  <!-- Arrows from interface to modules -->
+  <line x1="250" y1="176" x2="130" y2="213" stroke="#666" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="360" y1="176" x2="345" y2="213" stroke="#666" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="560" y1="176" x2="560" y2="213" stroke="#666" stroke-width="1" marker-end="url(#arrow)"/>
+  <line x1="660" y1="176" x2="750" y2="213" stroke="#666" stroke-width="1" marker-end="url(#arrow)"/>
+
+  <!-- Future Modules -->
+  <text x="30" y="350" font-size="14" font-weight="700" fill="#333">Future Modules 未来模块</text>
+
+  <rect x="30" y="360" width="140" height="60" rx="8" fill="#fafafa" stroke="#d1d5db" stroke-dasharray="6,3"/>
+  <text x="100" y="385" text-anchor="middle" font-size="12" fill="#999">Hive</text>
+  <text x="100" y="400" text-anchor="middle" font-size="10" fill="#bbb">Multi-client</text>
+
+  <rect x="185" y="360" width="140" height="60" rx="8" fill="#fafafa" stroke="#d1d5db" stroke-dasharray="6,3"/>
+  <text x="255" y="385" text-anchor="middle" font-size="12" fill="#999">Succinct Prover</text>
+  <text x="255" y="400" text-anchor="middle" font-size="10" fill="#bbb">ZKP Tests</text>
+
+  <rect x="340" y="360" width="140" height="60" rx="8" fill="#fafafa" stroke="#d1d5db" stroke-dasharray="6,3"/>
+  <text x="410" y="385" text-anchor="middle" font-size="12" fill="#999">DA Layer</text>
+  <text x="410" y="400" text-anchor="middle" font-size="10" fill="#bbb">DA Tests</text>
+
+  <rect x="495" y="360" width="140" height="60" rx="8" fill="#fafafa" stroke="#d1d5db" stroke-dasharray="6,3"/>
+  <text x="565" y="385" text-anchor="middle" font-size="12" fill="#999">Bridge E2E</text>
+  <text x="565" y="400" text-anchor="middle" font-size="10" fill="#bbb">L1↔L2 Tests</text>
+
+  <rect x="650" y="360" width="140" height="60" rx="8" fill="#fafafa" stroke="#d1d5db" stroke-dasharray="6,3"/>
+  <text x="720" y="385" text-anchor="middle" font-size="12" fill="#999">...</text>
+  <text x="720" y="400" text-anchor="middle" font-size="10" fill="#bbb">Any new module</text>
+
+  <!-- Plugin note -->
+  <rect x="30" y="440" width="860" height="36" rx="6" fill="#f8f9fa" stroke="#e5e7eb"/>
+  <text x="460" y="463" text-anchor="middle" font-size="12" fill="#666">Any module can plug in with a YAML manifest: command + env_vars + result_format + environments</text>
+
+  <!-- Reports -->
+  <rect x="30" y="495" width="860" height="80" rx="10" fill="#fff" stroke="#d1d5db"/>
+  <text x="460" y="518" text-anchor="middle" font-size="14" font-weight="700" fill="#333">Reports 报告</text>
+
+  <rect x="50" y="530" width="130" height="30" rx="4" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="115" y="550" text-anchor="middle" font-size="11" fill="#1e40af">EEST HTML</text>
+
+  <rect x="195" y="530" width="130" height="30" rx="4" fill="#fffbeb" stroke="#fcd34d"/>
+  <text x="260" y="550" text-anchor="middle" font-size="11" fill="#92400e">RPC Report</text>
+
+  <rect x="340" y="530" width="130" height="30" rx="4" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="405" y="550" text-anchor="middle" font-size="11" fill="#166534">op-e2e Logs</text>
+
+  <rect x="485" y="530" width="130" height="30" rx="4" fill="#fdf4ff" stroke="#d8b4fe"/>
+  <text x="550" y="550" text-anchor="middle" font-size="11" fill="#7e22ce">Acceptance</text>
+
+  <rect x="630" y="530" width="130" height="30" rx="4" fill="#f8f9fa" stroke="#d1d5db"/>
+  <text x="695" y="550" text-anchor="middle" font-size="11" fill="#666">All Module Logs</text>
+
+  <rect x="775" y="530" width="100" height="30" rx="4" fill="#fafafa" stroke="#d1d5db" stroke-dasharray="4,3"/>
+  <text x="825" y="550" text-anchor="middle" font-size="11" fill="#999">Future...</text>
+</svg>

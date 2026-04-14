@@ -1,0 +1,90 @@
+name: Mantle Test Orchestrator
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      modules:
+        description: 'Modules to run (comma-separated, empty=all)'
+        required: false
+      environment:
+        description: 'Environment (localchain, qa, mainnet)'
+        required: false
+        default: 'localchain'
+
+env:
+  GO_VERSION: '1.25'
+
+jobs:
+  # Build orchestrator
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Build
+        run: |
+          cd orchestrator
+          go build -o bin/mantle-test ./cmd/mantle-test/
+          go vet ./...
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mantle-test
+          path: orchestrator/bin/mantle-test
+
+  # Show execution plan
+  plan:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: mantle-test, path: orchestrator/bin/ }
+      - run: chmod +x orchestrator/bin/mantle-test
+      - name: Show plan
+        run: |
+          cd orchestrator
+          ENV=${{ inputs.environment || 'localchain' }}
+          MODULES="${{ inputs.modules }}"
+          ARGS="--config=configs/${ENV}.yaml"
+          if [ -n "$MODULES" ]; then
+            ARGS="$ARGS --modules=$MODULES"
+          fi
+          ./bin/mantle-test plan $ARGS
+
+  # Trigger each module's own CI
+  # These dispatch workflows in the respective repos
+  trigger-eest:
+    if: contains(inputs.modules || 'eest', 'eest')
+    needs: plan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger mantle-execution-specs CI
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DISPATCH_TOKEN }}
+          repository: mantlenetworkio/mantle-execution-specs
+          event-type: mantle-test
+          client-payload: |
+            {
+              "rpc_url": "${{ secrets.L2_RPC_URL }}",
+              "chain_id": "${{ secrets.L2_CHAIN_ID }}",
+              "fork_name": "Cancun"
+            }
+
+  trigger-execution-apis:
+    if: contains(inputs.modules || 'execution-apis', 'execution-apis')
+    needs: plan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger mantle-execution-apis CI
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DISPATCH_TOKEN }}
+          repository: mantlenetworkio/mantle-execution-apis
+          event-type: mantle-test
+

@@ -1,0 +1,18 @@
+environment:
+  type: localchain
+  l2_rpc_url: "${L2_RPC_URL:-http://localhost:8545}"
+  l2_ws_url: "${L2_WS_URL:-ws://localhost:8546}"
+  l1_rpc_url: "${L1_RPC_URL:-http://localhost:9545}"
+  chain_id: 5003
+  deployer_key: "${DEPLOYER_KEY}"
+  seed_key: "${SEED_KEY}"
+  devnet_compose: "./devnet/docker-compose.yml"
+
+modules:
+  dir: "modules/"
+
+execution:
+  phases: [unit, integration, e2e]
+  parallel: 4
+  fail_fast: true
+  output: [console, json]

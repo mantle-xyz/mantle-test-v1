@@ -1,0 +1,20 @@
+# Binaries
+orchestrator/bin/
+*.exe
+
+# Go
+*.test
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Reports are committed (for GitHub Pages), but local temp files are not
+reports/**/logs/
+
+.claude/

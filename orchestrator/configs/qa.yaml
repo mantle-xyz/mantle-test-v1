@@ -1,0 +1,17 @@
+environment:
+  type: qa
+  l2_rpc_url: "${QA_L2_RPC_URL}"
+  l2_ws_url: "${QA_L2_WS_URL}"
+  l1_rpc_url: "${QA_L1_RPC_URL}"
+  chain_id: 5003
+  deployer_key: "${QA_DEPLOYER_KEY}"
+  seed_key: "${QA_SEED_KEY}"
+
+modules:
+  dir: "modules/"
+
+execution:
+  phases: [integration, e2e, acceptance]
+  parallel: 2
+  fail_fast: false
+  output: [console, json, junit]

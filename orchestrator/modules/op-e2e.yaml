@@ -1,0 +1,28 @@
+name: op-e2e
+description: OP Stack end-to-end tests (already in mantle-v2)
+repo: mantle-v2
+
+suites:
+  - name: actions
+    phase: e2e
+    environments: [localchain]
+    command: "cd ${MANTLE_V2_DIR:-../mantle-v2}/op-e2e && make test-actions"
+    env_vars: [MANTLE_V2_DIR]
+    result_format: gotest-json
+    timeout: 60m
+
+  - name: mantle-actions
+    phase: e2e
+    environments: [localchain]
+    command: "cd ${MANTLE_V2_DIR:-../mantle-v2}/op-e2e && go test ./actions/mantletests/... -v -json -count=1"
+    env_vars: [MANTLE_V2_DIR]
+    result_format: gotest-json
+    timeout: 60m
+
+  - name: mantle-upgrades
+    phase: e2e
+    environments: [localchain]
+    command: "cd ${MANTLE_V2_DIR:-../mantle-v2}/op-e2e && go test ./actions/mantleupgrades/... -v -json -count=1"
+    env_vars: [MANTLE_V2_DIR]
+    result_format: gotest-json
+    timeout: 30m

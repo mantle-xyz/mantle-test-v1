@@ -1,0 +1,78 @@
+<mxfile host="app.diagrams.net" modified="2026-04-08T00:00:00.000Z" agent="mantle-test" version="24.0.0" type="device">
+  <diagram id="automation" name="Automation Flow">
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="520" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="2" value="① Code Change&#xa;op-geth PR / mantle-v2 PR" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563eb;fontColor=#ffffff;strokeColor=#1d4ed8;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="50" width="180" height="50" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="3" value="② Auto Trigger Tests&#xa;EEST CI · RPC CI · op-e2e CI · acceptance CI&#xa;(各仓库独立跑)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;fontColor=#333333;strokeColor=#d1d5db;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="272" y="42" width="300" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="4" value="webhook" style="edgeLabel;" edge="1" source="2" target="3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="5" value="③ Auto Block/Allow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;fontColor=#333333;strokeColor=#d1d5db;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="642" y="42" width="230" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="6" edge="1" source="3" target="5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="7" value="✅ All Pass → Merge OK" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;fontColor=#166534;strokeColor=#86efac;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="642" y="80" width="110" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="8" value="❌ Any Fail → Block" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fee2e2;fontColor=#dc2626;strokeColor=#fca5a5;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="762" y="80" width="110" height="36" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="20" value="④ Report Auto Aggregate + Push" style="text;html=1;align=center;fontSize=14;fontStyle=1;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="280" y="160" width="300" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="21" value="EEST Complete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#93c5fd;fontSize=10;fontColor=#1e40af;" vertex="1" parent="1">
+          <mxGeometry x="50" y="190" width="150" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="22" value="RPC Complete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffbeb;strokeColor=#fcd34d;fontSize=10;fontColor=#92400e;" vertex="1" parent="1">
+          <mxGeometry x="220" y="190" width="150" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="23" value="op-e2e Complete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#86efac;fontSize=10;fontColor=#166534;" vertex="1" parent="1">
+          <mxGeometry x="390" y="190" width="150" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="24" value="acceptance Complete" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdf4ff;strokeColor=#d8b4fe;fontSize=10;fontColor=#7e22ce;" vertex="1" parent="1">
+          <mxGeometry x="560" y="190" width="160" height="36" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="30" value="Report Aggregator&#xa;(mantle-test-v1 CI)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563eb;fontColor=#ffffff;strokeColor=#1d4ed8;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="260" width="300" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="31" edge="1" source="21" target="30" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="32" edge="1" source="22" target="30" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="33" edge="1" source="23" target="30" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="34" edge="1" source="24" target="30" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="40" value="📊 Aggregated Report&#xa;HTML + JSON + Markdown" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d1d5db;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="340" width="180" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="41" value="💬 Lark Notification&#xa;Pass/Fail + Report Link" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d1d5db;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="320" y="340" width="180" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="42" value="📦 GitHub Artifact&#xa;All reports archived" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d1d5db;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="340" width="180" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="43" edge="1" source="30" target="40" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="44" edge="1" source="30" target="41" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="45" edge="1" source="30" target="42" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="50" value="Code change → Auto test → Auto block if fail → Auto report to Lark&#xa;Zero manual intervention after initial setup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;fontColor=#888888;strokeColor=#e5e7eb;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="150" y="410" width="560" height="36" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

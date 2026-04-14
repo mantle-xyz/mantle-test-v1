@@ -1,0 +1,101 @@
+<mxfile host="app.diagrams.net" modified="2026-04-07T00:00:00.000Z" agent="mantle-test" version="24.0.0" type="device">
+  <diagram id="test-platform" name="Test Platform Architecture">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="920" pageHeight="600" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Orchestrator -->
+        <mxCell id="2" value="mantle-test-v1 (Orchestrator)&#xa;调度 · 环境管理 · 报告收集&#xa;Schedule · Env Mgmt · Report Collection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563eb;fontColor=#ffffff;strokeColor=#1d4ed8;fontSize=13;fontStyle=1;verticalAlign=middle;arcSize=12;" vertex="1" parent="1">
+          <mxGeometry x="250" y="50" width="420" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Plugin Interface -->
+        <mxCell id="3" value="Module Plugin Interface (YAML Manifest → shell command → result file)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fefce8;fontColor=#854d0e;strokeColor=#fde047;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="150" y="140" width="620" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrow -->
+        <mxCell id="4" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="2" target="3" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- EEST -->
+        <mxCell id="10" value="EEST&#xa;EVM Conformance&#xa;5000+ test fixtures&#xa;✅ Adapted" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;fontColor=#1e40af;strokeColor=#60a5fa;fontSize=11;fontStyle=1;verticalAlign=middle;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="30" y="215" width="200" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- execution-apis -->
+        <mxCell id="11" value="execution-apis&#xa;RPC Conformance&#xa;221 semantic tests&#xa;⚠️ Partial" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffbeb;fontColor=#92400e;strokeColor=#f59e0b;fontSize=11;fontStyle=1;verticalAlign=middle;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="245" y="215" width="200" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- op-e2e -->
+        <mxCell id="12" value="op-e2e&#xa;OP Stack E2E&#xa;173 test files&#xa;✅ Ready (mantle-v2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;fontColor=#166534;strokeColor=#86efac;fontSize=11;fontStyle=1;verticalAlign=middle;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="460" y="215" width="200" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- op-acceptance -->
+        <mxCell id="13" value="op-acceptance&#xa;Acceptance Tests&#xa;Gate-based validation&#xa;✅ Ready (mantle-v2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdf4ff;fontColor=#7e22ce;strokeColor=#c084fc;fontSize=11;fontStyle=1;verticalAlign=middle;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="675" y="215" width="215" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrows from interface to modules -->
+        <mxCell id="20" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="3" target="10" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="21" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="3" target="11" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="22" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="3" target="12" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="23" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="3" target="13" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Future modules -->
+        <mxCell id="30" value="Hive&#xa;Multi-client" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;fontColor=#999999;strokeColor=#d1d5db;fontSize=11;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="360" width="140" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="31" value="Succinct Prover&#xa;ZKP Tests" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;fontColor=#999999;strokeColor=#d1d5db;fontSize=11;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="185" y="360" width="140" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="32" value="DA Layer&#xa;DA Tests" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;fontColor=#999999;strokeColor=#d1d5db;fontSize=11;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="360" width="140" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="33" value="Bridge E2E&#xa;L1↔L2 Tests" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;fontColor=#999999;strokeColor=#d1d5db;fontSize=11;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="495" y="360" width="140" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="34" value="...&#xa;Any new module" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;fontColor=#999999;strokeColor=#d1d5db;fontSize=11;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="650" y="360" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Plugin note -->
+        <mxCell id="40" value="Any module can plug in with a YAML manifest: command + env_vars + result_format + environments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;fontColor=#666666;strokeColor=#e5e7eb;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="30" y="440" width="860" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- Reports -->
+        <mxCell id="50" value="Reports 报告" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;fontColor=#333333;strokeColor=#d1d5db;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="495" width="860" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="51" value="EEST HTML" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#93c5fd;fontSize=11;fontColor=#1e40af;" vertex="1" parent="1">
+          <mxGeometry x="50" y="530" width="130" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="52" value="RPC Report" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffbeb;strokeColor=#fcd34d;fontSize=11;fontColor=#92400e;" vertex="1" parent="1">
+          <mxGeometry x="195" y="530" width="130" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="53" value="op-e2e Logs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#86efac;fontSize=11;fontColor=#166534;" vertex="1" parent="1">
+          <mxGeometry x="340" y="530" width="130" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="54" value="Acceptance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdf4ff;strokeColor=#d8b4fe;fontSize=11;fontColor=#7e22ce;" vertex="1" parent="1">
+          <mxGeometry x="485" y="530" width="130" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="55" value="All Module Logs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;strokeColor=#d1d5db;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="630" y="530" width="130" height="30" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

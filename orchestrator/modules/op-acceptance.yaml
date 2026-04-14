@@ -1,0 +1,32 @@
+name: op-acceptance
+description: OP Stack acceptance tests with Mantle gates (already in mantle-v2)
+repo: mantle-v2
+
+suites:
+  - name: base-gate
+    phase: acceptance
+    environments: [localchain, qa]
+    command: |
+      cd ${MANTLE_V2_DIR:-../mantle-v2}/op-acceptance-tests &&
+      go run cmd/main.go
+        --gate=base
+        --testdir=.
+        --validators=./acceptance-tests.yaml
+        ${ACCEPTANCE_EXTRA_ARGS:-}
+    env_vars: [MANTLE_V2_DIR, L2_RPC_URL, L1_RPC_URL, ACCEPTANCE_EXTRA_ARGS]
+    result_format: gotest-json
+    timeout: 30m
+
+  - name: mantle-gate
+    phase: acceptance
+    environments: [localchain, qa]
+    command: |
+      cd ${MANTLE_V2_DIR:-../mantle-v2}/op-acceptance-tests &&
+      go run cmd/main.go
+        --gate=mantle-arsia
+        --testdir=.
+        --validators=./acceptance-tests.yaml
+        ${ACCEPTANCE_EXTRA_ARGS:-}
+    env_vars: [MANTLE_V2_DIR, L2_RPC_URL, L1_RPC_URL, ACCEPTANCE_EXTRA_ARGS]
+    result_format: gotest-json
+    timeout: 60m

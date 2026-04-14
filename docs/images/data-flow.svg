@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" font-family="system-ui, -apple-system, sans-serif" font-size="12">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#666"/>
+    </marker>
+  </defs>
+
+  <rect width="800" height="480" fill="#fafafa" rx="12"/>
+  <text x="400" y="26" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">Data Flow 数据流</text>
+
+  <!-- Step 1: CLI -->
+  <rect x="250" y="40" width="300" height="36" rx="6" fill="#2563eb"/>
+  <text x="400" y="63" text-anchor="middle" fill="#fff" font-weight="600">mantle-test run --config=configs/qa.yaml</text>
+
+  <line x1="400" y1="76" x2="400" y2="96" stroke="#666" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Step 2: Load + Plan -->
+  <rect x="200" y="98" width="400" height="50" rx="6" fill="#fff" stroke="#d1d5db"/>
+  <text x="400" y="118" text-anchor="middle" font-weight="600" fill="#333">Load Config → Discover Modules → Build Plan</text>
+  <text x="400" y="135" text-anchor="middle" fill="#888" font-size="11">configs/qa.yaml → modules/*.yaml → phase ordering + env filtering</text>
+
+  <line x1="400" y1="148" x2="400" y2="168" stroke="#666" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Step 3: Execute -->
+  <rect x="40" y="170" width="720" height="120" rx="8" fill="#fff" stroke="#d1d5db"/>
+  <text x="400" y="190" text-anchor="middle" font-weight="600" fill="#333">Execute Modules 执行模块</text>
+
+  <!-- EEST box -->
+  <rect x="60" y="200" width="160" height="70" rx="6" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="140" y="220" text-anchor="middle" font-weight="600" fill="#1e40af" font-size="11">EEST</text>
+  <text x="140" y="236" text-anchor="middle" fill="#666" font-size="10">uv run execute remote</text>
+  <text x="140" y="250" text-anchor="middle" fill="#666" font-size="10">→ HTML report + logs</text>
+  <text x="140" y="264" text-anchor="middle" fill="#999" font-size="9">mantle-execution-specs</text>
+
+  <!-- RPC box -->
+  <rect x="240" y="200" width="160" height="70" rx="6" fill="#fffbeb" stroke="#fcd34d"/>
+  <text x="320" y="220" text-anchor="middle" font-weight="600" fill="#92400e" font-size="11">execution-apis</text>
+  <text x="320" y="236" text-anchor="middle" fill="#666" font-size="10">make test (speccheck)</text>
+  <text x="320" y="250" text-anchor="middle" fill="#666" font-size="10">→ speccheck log</text>
+  <text x="320" y="264" text-anchor="middle" fill="#999" font-size="9">mantle-execution-apis</text>
+
+  <!-- op-e2e box -->
+  <rect x="420" y="200" width="160" height="70" rx="6" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="500" y="220" text-anchor="middle" font-weight="600" fill="#166534" font-size="11">op-e2e</text>
+  <text x="500" y="236" text-anchor="middle" fill="#666" font-size="10">make test-actions</text>
+  <text x="500" y="250" text-anchor="middle" fill="#666" font-size="10">→ go test output</text>
+  <text x="500" y="264" text-anchor="middle" fill="#999" font-size="9">mantle-v2/op-e2e</text>
+
+  <!-- acceptance box -->
+  <rect x="600" y="200" width="145" height="70" rx="6" fill="#fdf4ff" stroke="#d8b4fe"/>
+  <text x="672" y="220" text-anchor="middle" font-weight="600" fill="#7e22ce" font-size="11">op-acceptance</text>
+  <text x="672" y="236" text-anchor="middle" fill="#666" font-size="10">op-acceptor --gate</text>
+  <text x="672" y="250" text-anchor="middle" fill="#666" font-size="10">→ test results</text>
+  <text x="672" y="264" text-anchor="middle" fill="#999" font-size="9">mantle-v2</text>
+
+  <line x1="400" y1="290" x2="400" y2="310" stroke="#666" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Step 4: Collect Reports -->
+  <rect x="100" y="312" width="600" height="60" rx="8" fill="#fff" stroke="#d1d5db"/>
+  <text x="400" y="332" text-anchor="middle" font-weight="600" fill="#333">Collect Reports 收集报告</text>
+  <text x="400" y="352" text-anchor="middle" fill="#888" font-size="11">reports/&lt;timestamp&gt;/ → each module's native report artifacts</text>
+
+  <line x1="400" y1="372" x2="400" y2="392" stroke="#666" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Step 5: Output -->
+  <rect x="80" y="394" width="140" height="36" rx="6" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="150" y="417" text-anchor="middle" font-size="11" fill="#1e40af">EEST HTML Report</text>
+
+  <rect x="240" y="394" width="120" height="36" rx="6" fill="#fffbeb" stroke="#fcd34d"/>
+  <text x="300" y="417" text-anchor="middle" font-size="11" fill="#92400e">RPC Spec Log</text>
+
+  <rect x="380" y="394" width="120" height="36" rx="6" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="440" y="417" text-anchor="middle" font-size="11" fill="#166534">E2E Test Log</text>
+
+  <rect x="520" y="394" width="140" height="36" rx="6" fill="#fdf4ff" stroke="#d8b4fe"/>
+  <text x="590" y="417" text-anchor="middle" font-size="11" fill="#7e22ce">Acceptance Results</text>
+
+  <!-- Environment note -->
+  <rect x="200" y="445" width="400" height="26" rx="4" fill="#f8f9fa" stroke="#e5e7eb"/>
+  <text x="400" y="463" text-anchor="middle" font-size="11" fill="#888">Environment: localchain (sends tx) · qa (sends tx) · mainnet (read-only)</text>
+</svg>
