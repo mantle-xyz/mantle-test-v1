@@ -21,6 +21,7 @@ type Engine struct {
 	cfg      *config.Config
 	registry *module.Registry
 	env      environment.Environment
+	Mode     string // "local" or "ci"
 }
 
 // New creates a new Engine from a loaded config.
@@ -196,16 +197,17 @@ func (e *Engine) saveReport(report *result.RunReport) error {
 }
 
 func (e *Engine) buildRunner(modules []*module.Descriptor) phase.SuiteRunner {
-	// Build module lookup
 	modMap := make(map[string]*module.Descriptor)
 	for _, m := range modules {
 		modMap[m.Name] = m
 	}
 
 	execRunner := &adapter.ExecRunner{
-		WorkDir: ".", // TODO: configurable
+		WorkDir: ".",
 		BaseEnv: e.env.EnvVars(),
 	}
+
+	ciTrigger := &adapter.CITrigger{}
 
 	return func(ctx context.Context, run phase.ScheduledRun) (*result.SuiteResult, error) {
 		mod, ok := modMap[run.Module]
@@ -213,6 +215,54 @@ func (e *Engine) buildRunner(modules []*module.Descriptor) phase.SuiteRunner {
 			return nil, fmt.Errorf("module %s not found", run.Module)
 		}
 
+		// CI mode: trigger remote workflow instead of local exec
+		if e.Mode == "ci" && mod.Source.CI != nil {
+			ci := mod.Source.CI
+			fmt.Printf("  [CI] Triggering %s/%s ...\n", ci.Repo, ci.Workflow)
+
+			payload := make(map[string]string)
+			for k, v := range e.env.EnvVars() {
+				payload[k] = v
+			}
+
+			triggerResult, err := ciTrigger.Trigger(ctx, adapter.TriggerConfig{
+				Repo:     ci.Repo,
+				Workflow: ci.Workflow,
+				Event:    ci.Event,
+			}, payload, true) // wait=true
+
+			sr := &result.SuiteResult{
+				Module: mod.Name,
+				Suite:  run.Suite.Name,
+				Phase:  string(run.Suite.Phase),
+			}
+
+			if err != nil {
+				sr.Failed = 1
+				sr.Total = 1
+				sr.Failures = []result.TestFailure{{
+					TestID:  run.ID,
+					Message: fmt.Sprintf("CI trigger failed: %v", err),
+				}}
+				return sr, nil
+			}
+
+			if triggerResult.Status == "success" {
+				sr.Passed = 1
+				sr.Total = 1
+			} else {
+				sr.Failed = 1
+				sr.Total = 1
+				sr.Failures = []result.TestFailure{{
+					TestID:  run.ID,
+					Message: fmt.Sprintf("CI workflow %s: %s", triggerResult.Status, triggerResult.RunURL),
+				}}
+			}
+			sr.Duration = triggerResult.Duration
+			return sr, nil
+		}
+
+		// Local mode: exec command
 		p, err := parser.ForFormat(run.Suite.ResultFormat)
 		if err != nil {
 			return nil, err

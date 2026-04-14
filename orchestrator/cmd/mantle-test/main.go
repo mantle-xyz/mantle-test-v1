@@ -40,6 +40,7 @@ func runCmd() *cobra.Command {
 		failFast   bool
 		outputJSON string
 		setFlags   []string
+		runMode    string
 	)
 
 	cmd := &cobra.Command{
@@ -81,6 +82,8 @@ func runCmd() *cobra.Command {
 				return err
 			}
 
+			engine.Mode = runMode
+
 			report, err := engine.Run(ctx)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -111,6 +114,7 @@ func runCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&failFast, "fail-fast", false, "stop on first failure")
 	cmd.Flags().StringVar(&outputJSON, "output-json", "", "write JSON report to file")
 	cmd.Flags().StringSliceVar(&setFlags, "set", nil, "config overrides (key=value)")
+	cmd.Flags().StringVar(&runMode, "mode", "local", "execution mode: local (clone+run) or ci (trigger workflow)")
 
 	return cmd
 }

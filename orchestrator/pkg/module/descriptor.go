@@ -10,10 +10,30 @@ import (
 
 // Descriptor represents a module's mantle-test.yaml manifest.
 type Descriptor struct {
-	Name      string          `yaml:"name"`
-	Language  string          `yaml:"language"`
-	Suites    []Suite         `yaml:"suites"`
-	CITrigger *CITriggerConfig `yaml:"ci_trigger,omitempty"`
+	Name        string          `yaml:"name"`
+	Description string          `yaml:"description"`
+	Source      SourceConfig    `yaml:"source"`
+	Suites      []Suite         `yaml:"suites"`
+}
+
+// SourceConfig defines where to get and how to run the module.
+type SourceConfig struct {
+	Local *LocalSource `yaml:"local,omitempty"`
+	CI    *CISource    `yaml:"ci,omitempty"`
+}
+
+// LocalSource: clone repo and run command locally.
+type LocalSource struct {
+	Repo   string `yaml:"repo"`
+	Branch string `yaml:"branch"`
+	Path   string `yaml:"path"`
+}
+
+// CISource: trigger target repo's CI workflow.
+type CISource struct {
+	Repo     string `yaml:"repo"`     // "owner/repo"
+	Workflow string `yaml:"workflow"` // "mantle-test.yaml"
+	Event    string `yaml:"event"`    // "mantle-test"
 }
 
 // Suite defines a single test suite within a module.
@@ -29,13 +49,7 @@ type Suite struct {
 	DependsOn    []string          `yaml:"depends_on,omitempty"`
 }
 
-// CITriggerConfig defines how to trigger a module's CI remotely.
-type CITriggerConfig struct {
-	Type     string `yaml:"type"`     // "github-actions"
-	Repo     string `yaml:"repo"`     // "owner/repo"
-	Workflow string `yaml:"workflow"` // "test.yml"
-	Artifact string `yaml:"artifact"` // artifact name to download
-}
+
 
 // SupportsEnv returns true if the suite can run in the given environment.
 func (s *Suite) SupportsEnv(env EnvironmentType) bool {
