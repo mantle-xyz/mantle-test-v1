@@ -2,9 +2,15 @@ name: op-e2e
 description: OP Stack end-to-end tests (already in mantle-v2)
 
 source:
-  repo: https://github.com/mantlenetworkio/mantle-v2.git
-  branch: develop
-  path: mantle-v2
+  local:
+    repo: https://github.com/mantlenetworkio/mantle-v2.git
+    branch: develop
+    path: mantle-v2
+
+  ci:
+    repo: mantlenetworkio/mantle-v2
+    workflow: e2e.yaml
+    event: mantle-test
 
 suites:
   - name: actions

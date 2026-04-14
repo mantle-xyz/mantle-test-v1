@@ -2,9 +2,17 @@ name: eest
 description: EVM conformance tests via EEST (ethereum/execution-specs)
 
 source:
-  repo: https://github.com/mantle-xyz/mantle-execution-specs.git
-  branch: mantle/main
-  path: mantle-execution-specs  # clone 到这个本地目录名
+  # local: clone repo and run command locally
+  local:
+    repo: https://github.com/mantle-xyz/mantle-execution-specs.git
+    branch: mantle/main
+    path: mantle-execution-specs
+
+  # ci: trigger target repo's CI workflow
+  ci:
+    repo: mantle-xyz/mantle-execution-specs
+    workflow: mantle-test.yaml
+    event: mantle-test
 
 suites:
   - name: evm-conformance
