@@ -1,8 +1,0 @@
-{
-  "name": "Run #7 (localchain)",
-  "timestamp": "20260414-082338",
-  "trigger": "GitHub Actions Run #7",
-  "environment": "localchain",
-  "run_url": "https://github.com/mantle-xyz/mantle-test-v1/actions/runs/24388742267",
-  "reports": [{"module": "op-acceptance", "file": "op-acceptance/20260214-162644.html"}, {"module": "proxyd", "file": "proxyd/20260414-143742.html"}]
-}
