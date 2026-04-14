@@ -81,6 +81,8 @@ jobs:
           from datetime import datetime
 
           # Structure: reports/<module>/<timestamp>.html
+          # Generates a sidebar layout with collapsible modules and search
+
           MODULE_STYLE = {
               "eest": {"label": "EEST (EVM Conformance)", "color": "#1e40af", "bg": "#eff6ff"},
               "execution-apis": {"label": "execution-apis (RPC)", "color": "#92400e", "bg": "#fffbeb"},
@@ -101,49 +103,114 @@ jobs:
           <title>Mantle Test Reports</title>
           <style>
             *{margin:0;padding:0;box-sizing:border-box}
-            body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:960px;margin:0 auto;padding:24px;background:#fafafa;color:#333}
-            h1{font-size:24px;margin-bottom:4px}
-            .sub{color:#666;font-size:14px;margin-bottom:24px}
-            .module-section{background:#fff;border-radius:8px;padding:16px 20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
-            .module-header{display:inline-block;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600;margin-bottom:10px}
-            .reports{list-style:none;padding:0}
-            .reports li{padding:5px 0;border-bottom:1px solid #f5f5f5;display:flex;justify-content:space-between;align-items:center}
-            .reports li:last-child{border-bottom:none}
-            .reports a{color:#2563eb;text-decoration:none;font-size:13px}
-            .reports a:hover{text-decoration:underline}
-            .latest-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#dcfce7;color:#166534;margin-left:8px}
-            .time{color:#999;font-size:12px}
-            footer{text-align:center;color:#999;font-size:12px;margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb}
+            body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f5f5f5;color:#333;display:flex;height:100vh}
+            /* Sidebar */
+            .sidebar{width:280px;background:#fff;border-right:1px solid #e5e7eb;overflow-y:auto;flex-shrink:0;padding:16px 0}
+            .sidebar h1{font-size:16px;padding:0 16px 8px;border-bottom:1px solid #f0f0f0;margin-bottom:8px}
+            .search{margin:0 12px 12px;padding:8px 10px;border:1px solid #e5e7eb;border-radius:6px;width:calc(100% - 24px);font-size:13px;outline:none}
+            .search:focus{border-color:#2563eb}
+            .module-group{margin-bottom:4px}
+            .module-toggle{display:flex;align-items:center;padding:8px 16px;cursor:pointer;font-weight:600;font-size:13px;user-select:none;border:none;background:none;width:100%;text-align:left}
+            .module-toggle:hover{background:#f8f9fa}
+            .module-toggle .arrow{margin-right:6px;transition:transform 0.15s;font-size:10px;color:#999}
+            .module-toggle.collapsed .arrow{transform:rotate(-90deg)}
+            .module-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-left:auto}
+            .module-count{font-size:11px;color:#999;margin-left:6px}
+            .file-list{list-style:none;padding:0;overflow:hidden;transition:max-height 0.2s}
+            .file-list.collapsed{max-height:0 !important;overflow:hidden}
+            .file-list li{padding:4px 16px 4px 36px}
+            .file-list a{color:#2563eb;text-decoration:none;font-size:12px;display:block;padding:2px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+            .file-list a:hover{text-decoration:underline}
+            .file-list a.active{color:#1e40af;font-weight:600;background:#eff6ff;margin:-2px -8px;padding:4px 8px;border-radius:4px}
+            .latest{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;background:#dcfce7;color:#166534;margin-left:4px;vertical-align:middle}
+            .hidden{display:none}
+            /* Main content */
+            .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+            .toolbar{padding:8px 16px;background:#fff;border-bottom:1px solid #e5e7eb;font-size:13px;color:#666;display:flex;align-items:center;gap:12px}
+            .toolbar .path{font-weight:600;color:#333}
+            iframe{flex:1;border:none;width:100%;background:#fff}
+            .empty{display:flex;align-items:center;justify-content:center;flex:1;color:#999;font-size:14px}
+            /* Responsive */
+            @media(max-width:768px){.sidebar{width:220px}}
           </style></head><body>
-          <h1>Mantle Test Reports</h1>
-          <p class="sub">Auto-generated from CI test results. Each module's reports sorted by time (newest first).</p>""")
+          <div class="sidebar">
+            <h1>Mantle Test Reports</h1>
+            <input type="text" class="search" id="search" placeholder="Search reports...">
+          """)
 
+          # Build sidebar modules
           for mod_dir in modules:
               mod_name = mod_dir.name
               style = get_style(mod_name)
-
-              # Get all report files, sorted newest first
               files = sorted(
                   [f for f in mod_dir.iterdir() if f.is_file() and not f.name.startswith(".")],
                   key=lambda f: f.name, reverse=True
               )
-
               if not files:
                   continue
 
-              out.append(f'<div class="module-section">')
-              out.append(f'<span class="module-header" style="background:{style["bg"]};color:{style["color"]}">{style["label"]}</span>')
-              out.append(f'<span class="time" style="margin-left:8px">{len(files)} reports</span>')
-              out.append('<ul class="reports">')
+              out.append(f'<div class="module-group" data-module="{mod_name}">')
+              out.append(f'<button class="module-toggle" onclick="toggleModule(this)">')
+              out.append(f'<span class="arrow">▼</span>')
+              out.append(f'<span class="module-badge" style="background:{style["bg"]};color:{style["color"]}">{style["label"]}</span>')
+              out.append(f'<span class="module-count">{len(files)}</span>')
+              out.append('</button>')
+              out.append(f'<ul class="file-list" style="max-height:{len(files)*28+10}px">')
 
               for i, f in enumerate(files):
                   href = f"{mod_name}/{f.name}"
-                  tag = '<span class="latest-tag">latest</span>' if i == 0 else ""
-                  out.append(f'<li><a href="{href}">{f.name}</a>{tag}</li>')
+                  tag = '<span class="latest">latest</span>' if i == 0 else ""
+                  out.append(f'<li><a href="{href}" onclick="loadReport(event,this)" data-name="{f.name}">{f.stem}{tag}</a></li>')
 
               out.append('</ul></div>')
 
-          out.append(f'<footer>Mantle Test Framework — Last updated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")}</footer></body></html>')
+          out.append(f"""
+          <div style="padding:12px 16px;border-top:1px solid #f0f0f0;margin-top:auto;font-size:11px;color:#bbb">
+            Updated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC
+          </div>
+          </div>
+          <div class="main">
+            <div class="toolbar">
+              <span>Report:</span>
+              <span class="path" id="currentPath">Select a report from the sidebar</span>
+            </div>
+            <div class="empty" id="placeholder">← Select a report to view</div>
+            <iframe id="viewer" style="display:none"></iframe>
+          </div>
+          <script>
+          function toggleModule(btn){{
+            btn.classList.toggle('collapsed');
+            const list=btn.nextElementSibling;
+            list.classList.toggle('collapsed');
+          }}
+          function loadReport(e,el){{
+            e.preventDefault();
+            document.querySelectorAll('.file-list a').forEach(a=>a.classList.remove('active'));
+            el.classList.add('active');
+            const href=el.getAttribute('href');
+            document.getElementById('viewer').src=href;
+            document.getElementById('viewer').style.display='block';
+            document.getElementById('placeholder').style.display='none';
+            document.getElementById('currentPath').textContent=href;
+          }}
+          document.getElementById('search').addEventListener('input',function(){{
+            const q=this.value.toLowerCase();
+            document.querySelectorAll('.module-group').forEach(g=>{{
+              let hasMatch=false;
+              g.querySelectorAll('.file-list a').forEach(a=>{{
+                const match=a.dataset.name.toLowerCase().includes(q)||g.dataset.module.toLowerCase().includes(q);
+                a.parentElement.classList.toggle('hidden',!match);
+                if(match)hasMatch=true;
+              }});
+              g.classList.toggle('hidden',!hasMatch);
+              if(hasMatch&&q){{
+                g.querySelector('.file-list').classList.remove('collapsed');
+                g.querySelector('.module-toggle').classList.remove('collapsed');
+              }}
+            }});
+          }});
+          </script>
+          </body></html>""")
           Path("index.html").write_text("\n".join(out))
           print(f"Generated index.html with {len(modules)} modules")
           PYSCRIPT
