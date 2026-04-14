@@ -121,9 +121,10 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 .hidden{{display:none!important}}
 
 .sidebar-footer{{padding:8px 12px;border-top:1px solid #f0f0f0;font-size:10px;color:#ccc;flex-shrink:0}}
-.sidebar-toggle{{position:fixed;top:50%;left:300px;transform:translateX(-50%);width:28px;height:28px;background:#fff;border:1px solid #ddd;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.1);transition:left 0.2s}}
+.sidebar-toggle{{width:100%;padding:8px;border:none;border-top:1px solid #f0f0f0;background:#fff;cursor:pointer;font-size:13px;color:#999;text-align:center;flex-shrink:0}}
 .sidebar-toggle:hover{{background:#f5f5f5;color:#333}}
-.sidebar.collapsed-sidebar{{width:0;min-width:0;overflow:hidden;border-right:none}}
+.sidebar.collapsed-sidebar{{width:40px;min-width:40px;overflow:hidden}}
+.sidebar.collapsed-sidebar .sidebar-header,.sidebar.collapsed-sidebar .search,.sidebar.collapsed-sidebar .sidebar-content,.sidebar.collapsed-sidebar .sidebar-footer{{display:none}}
 .resize-handle{{position:absolute;top:0;right:0;width:4px;height:100%;cursor:col-resize;background:transparent}}
 .resize-handle:hover{{background:#2563eb40}}
 
@@ -136,7 +137,6 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 </head>
 <body>
 
-<div class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">◀</div>
 <div class="sidebar" id="sidebar">
   <div class="resize-handle" id="resizeHandle"></div>
   <div class="sidebar-header"><h1>Mantle Test Reports</h1></div>
@@ -145,6 +145,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     {sidebar_html}
   </div>
   <div class="sidebar-footer">Updated: {now}</div>
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">◀ Collapse</button>
 </div>
 
 <div class="main">
@@ -153,19 +154,24 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     <span class="path" id="path">Select a report</span>
   </div>
   <div class="empty" id="empty">Select a report from the sidebar</div>
+  <div id="planView" style="display:none;padding:24px;overflow-y:auto;flex:1"></div>
   <iframe class="viewer" id="viewer" style="display:none"></iframe>
 </div>
 
 <script>
 const allFiles={all_files_json};
 
+let lastWidth=300;
 function toggleSidebar(){{
   const sb=document.getElementById('sidebar');
   const btn=document.getElementById('sidebarToggle');
+  if(!sb.classList.contains('collapsed-sidebar')){{
+    lastWidth=sb.offsetWidth;  // remember current width before collapse
+  }}
   sb.classList.toggle('collapsed-sidebar');
   const collapsed=sb.classList.contains('collapsed-sidebar');
-  btn.textContent=collapsed?'▶':'◀';
-  btn.style.left=collapsed?'14px':(sb.offsetWidth+'px');
+  btn.textContent=collapsed?'▶':'◀ Collapse';
+  if(!collapsed)sb.style.width=lastWidth+'px';  // restore previous width
 }}
 
 // Drag to resize sidebar
@@ -201,6 +207,7 @@ function showReport(href){{
   if(event&&event.target)event.target.classList.add('active');
   document.getElementById('viewer').src=href;
   document.getElementById('viewer').style.display='block';
+  document.getElementById('planView').style.display='none';
   document.getElementById('empty').style.display='none';
   document.getElementById('path').textContent=href;
   history.replaceState(null,'','#'+href);
@@ -222,19 +229,17 @@ function showPlan(name){{
     allFiles[mod].forEach(f=>{{
       const fname=f.split('/').pop();
       if(fname.startsWith(name+'-')){{
-        rows.push('<tr><td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:600">'+mod+'</td><td style="padding:8px 12px;border-bottom:1px solid #f0f0f0"><a href="'+f+'" target="_blank" style="color:#2563eb">'+fname+'</a></td></tr>');
+        rows.push('<tr><td style="padding:10px 14px;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:14px">'+mod+'</td><td style="padding:10px 14px;border-bottom:1px solid #f0f0f0"><a href="'+f+'" target="_blank" style="color:#2563eb;font-size:14px">'+fname+'</a></td></tr>');
       }}
     }});
   }});
   if(rows.length===0){{
-    rows.push('<tr><td colspan="2" style="padding:12px;color:#999;text-align:center">No reports found for this plan</td></tr>');
+    rows.push('<tr><td colspan="2" style="padding:16px;color:#999;text-align:center">No reports found for this plan</td></tr>');
   }}
-  const base=window.location.href.split('#')[0].replace(/index\\.html$/,'').replace(/\\/$/,'')+'/';
-  const html='<html><head><base href="'+base+'"></head><body style="font-family:-apple-system,sans-serif;padding:20px"><h2 style="font-size:16px;margin-bottom:12px">Plan: '+name+'</h2><table style="border-collapse:collapse;width:100%"><tr style="background:#f8f9fa"><th style="text-align:left;padding:8px 12px;border-bottom:2px solid #e5e7eb;font-size:12px">Module</th><th style="text-align:left;padding:8px 12px;border-bottom:2px solid #e5e7eb;font-size:12px">Report</th></tr>'+rows.join('')+'</table></body></html>';
-  const blob=new Blob([html],{{type:'text/html'}});
-  const frame=document.getElementById('viewer');
-  frame.src=URL.createObjectURL(blob);
-  frame.style.display='block';
+  const pv=document.getElementById('planView');
+  pv.innerHTML='<h2 style="font-size:18px;margin-bottom:16px">Plan: '+name+'</h2><table style="border-collapse:collapse;width:100%;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><tr style="background:#f8f9fa"><th style="text-align:left;padding:10px 14px;border-bottom:2px solid #e5e7eb;font-size:13px">Module</th><th style="text-align:left;padding:10px 14px;border-bottom:2px solid #e5e7eb;font-size:13px">Report</th></tr>'+rows.join('')+'</table>';
+  pv.style.display='block';
+  document.getElementById('viewer').style.display='none';
   document.getElementById('empty').style.display='none';
   document.getElementById('path').textContent='Plan: '+name;
   history.replaceState(null,'','#plan:'+name);
