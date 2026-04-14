@@ -1,14 +1,11 @@
 name: Deploy Reports to GitHub Pages
 
 on:
-  # reports/ 有变更时自动部署
   push:
     branches: ["main"]
     paths: ["reports/**"]
-  # 其他模块 CI 通过 dispatch 触发收集
   repository_dispatch:
     types: [module-ci-complete]
-  # 手动触发
   workflow_dispatch:
 
 permissions:
@@ -21,7 +18,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Collect reports from dispatch events (module CI → artifact → download → commit)
   collect:
     if: github.event_name == 'repository_dispatch'
     runs-on: ubuntu-latest
@@ -40,267 +36,37 @@ jobs:
       - name: Commit report
         run: |
           MODULE="${{ github.event.client_payload.module }}"
+          PLAN="${{ github.event.client_payload.plan }}"
           mkdir -p reports/${MODULE}/
-
-          # Find all HTML reports in downloaded artifact
-          COUNT=0
-          find /tmp/report -name "*.html" -type f | while read f; do
-            # Use file modification time as timestamp
-            FILE_TIME=$(date -r "$f" -u +%Y%m%d-%H%M%S 2>/dev/null || date -u +%Y%m%d-%H%M%S)
-            DEST="reports/${MODULE}/${FILE_TIME}.html"
-            # Avoid collision
-            [ -f "$DEST" ] && DEST="reports/${MODULE}/${FILE_TIME}-${COUNT}.html"
+          for f in /tmp/report/*.html; do
+            [ -f "$f" ] || continue
+            TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
+            if [ -n "$PLAN" ]; then
+              DEST="reports/${MODULE}/${PLAN}-${TIMESTAMP}.html"
+            else
+              DEST="reports/${MODULE}/${TIMESTAMP}.html"
+            fi
             cp "$f" "$DEST"
-            COUNT=$((COUNT + 1))
-            echo "  → $DEST"
           done
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add reports/
-          if git diff --cached --quiet; then
-            echo "No new reports"
-          else
-            git commit -m "Add ${MODULE} report ${TIMESTAMP}"
-            git push
-          fi
+          git diff --cached --quiet || { git commit -m "Add ${MODULE} report" && git push; }
 
   deploy:
+    if: always()
+    needs: [collect]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Generate index.html
-        run: |
-          cd reports
-          python3 << 'PYSCRIPT'
-          import os
-          from pathlib import Path
-          from datetime import datetime
-
-          # Structure: reports/<module>/<timestamp>.html
-          # Generates a sidebar layout with collapsible modules and search
-
-          MODULE_STYLE = {
-              "eest": {"label": "EEST (EVM Conformance)", "color": "#1e40af", "bg": "#eff6ff"},
-              "execution-apis": {"label": "execution-apis (RPC)", "color": "#92400e", "bg": "#fffbeb"},
-              "op-e2e": {"label": "op-e2e", "color": "#166534", "bg": "#f0fdf4"},
-              "op-acceptance": {"label": "op-acceptance", "color": "#7e22ce", "bg": "#fdf4ff"},
-          }
-
-          def get_style(module_name):
-              return MODULE_STYLE.get(module_name, {"label": module_name, "color": "#666", "bg": "#f5f5f5"})
-
-          # Discover modules (top-level directories)
-          modules = sorted([d for d in Path(".").iterdir() if d.is_dir() and not d.name.startswith(".")])
-
-          out = []
-          out.append("""<!DOCTYPE html>
-          <html lang="en"><head><meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Mantle Test Reports</title>
-          <style>
-            *{margin:0;padding:0;box-sizing:border-box}
-            body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f5f5f5;color:#333;display:flex;height:100vh}
-            /* Sidebar */
-            .sidebar{width:280px;background:#fff;border-right:1px solid #e5e7eb;overflow-y:auto;flex-shrink:0;padding:16px 0}
-            .sidebar h1{font-size:16px;padding:0 16px 8px;border-bottom:1px solid #f0f0f0;margin-bottom:8px}
-            .search{margin:0 12px 12px;padding:8px 10px;border:1px solid #e5e7eb;border-radius:6px;width:calc(100% - 24px);font-size:13px;outline:none}
-            .search:focus{border-color:#2563eb}
-            .module-group{margin-bottom:4px}
-            .module-toggle{display:flex;align-items:center;padding:8px 16px;cursor:pointer;font-weight:600;font-size:13px;user-select:none;border:none;background:none;width:100%;text-align:left}
-            .module-toggle:hover{background:#f8f9fa}
-            .module-toggle .arrow{margin-right:6px;transition:transform 0.15s;font-size:10px;color:#999}
-            .module-toggle.collapsed .arrow{transform:rotate(-90deg)}
-            .module-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-left:auto}
-            .module-count{font-size:11px;color:#999;margin-left:6px}
-            .file-list{list-style:none;padding:0;overflow:hidden;transition:max-height 0.2s}
-            .file-list.collapsed{max-height:0 !important;overflow:hidden}
-            .file-list li{padding:4px 16px 4px 36px}
-            .file-list a{color:#2563eb;text-decoration:none;font-size:12px;display:block;padding:2px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-            .file-list a:hover{text-decoration:underline}
-            .file-list a.active{color:#1e40af;font-weight:600;background:#eff6ff;margin:-2px -8px;padding:4px 8px;border-radius:4px}
-            .latest{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;background:#dcfce7;color:#166534;margin-left:4px;vertical-align:middle}
-            .hidden{display:none}
-            /* Main content */
-            .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-            .toolbar{padding:8px 16px;background:#fff;border-bottom:1px solid #e5e7eb;font-size:13px;color:#666;display:flex;align-items:center;gap:12px}
-            .toolbar .path{font-weight:600;color:#333}
-            iframe{flex:1;border:none;width:100%;background:#fff}
-            .empty{display:flex;align-items:center;justify-content:center;flex:1;color:#999;font-size:14px}
-            /* Responsive */
-            @media(max-width:768px){.sidebar{width:220px}}
-          </style></head><body>
-          <div class="sidebar">
-            <h1>Mantle Test Reports</h1>
-            <input type="text" class="search" id="search" placeholder="Search reports...">
-          """)
-
-          # Collect all plan names from file prefixes and plans/*.json
-          import json as _json
-          plan_names = set()
-          plans_dir = Path("plans")
-
-          # From plans/*.json
-          if plans_dir.is_dir():
-              for pf in plans_dir.iterdir():
-                  if pf.suffix == ".json":
-                      plan_names.add(pf.stem)
-
-          # From report filenames: <plan-name>-<timestamp>.html
-          for mod_dir in modules:
-              if mod_dir.name == "plans":
-                  continue
-              for f in mod_dir.iterdir():
-                  if f.is_file() and "-" in f.stem:
-                      # plan-name is everything before the last YYYYMMDD-HHMMSS
-                      parts = f.stem.rsplit("-", 2)
-                      if len(parts) >= 3 and len(parts[-2]) == 8 and len(parts[-1]) == 6:
-                          plan_name = "-".join(parts[:-2])
-                          if plan_name:
-                              plan_names.add(plan_name)
-
-          # Build Plans section
-          if plan_names:
-              sorted_plans = sorted(plan_names, reverse=True)
-              out.append('<div class="module-group" data-module="plans">')
-              out.append('<button class="module-toggle" onclick="toggleModule(this)">')
-              out.append('<span class="arrow">▼</span>')
-              out.append('<span class="module-badge" style="background:#fef2f2;color:#991b1b">Test Plans</span>')
-              out.append(f'<span class="module-count">{len(sorted_plans)}</span>')
-              out.append('</button>')
-              out.append(f'<ul class="file-list" style="max-height:{len(sorted_plans)*28+10}px">')
-              for i, pname in enumerate(sorted_plans):
-                  # Load description from plans/*.json if exists
-                  desc = pname
-                  pjson = plans_dir / f"{pname}.json"
-                  if pjson.exists():
-                      meta = _json.loads(pjson.read_text())
-                      desc = meta.get("description", pname) or pname
-                  tag = '<span class="latest">latest</span>' if i == 0 else ""
-                  out.append(f'<li><a href="#" onclick="loadPlanView(event,\'{pname}\')" data-name="{pname}">{pname}{tag}</a></li>')
-              out.append('</ul></div>')
-
-          # Build sidebar modules
-          for mod_dir in modules:
-              if mod_dir.name == "plans":
-                  continue
-              mod_name = mod_dir.name
-              style = get_style(mod_name)
-              files = sorted(
-                  [f for f in mod_dir.iterdir() if f.is_file() and not f.name.startswith(".")],
-                  key=lambda f: f.name, reverse=True
-              )
-              if not files:
-                  continue
-
-              out.append(f'<div class="module-group" data-module="{mod_name}">')
-              out.append(f'<button class="module-toggle" onclick="toggleModule(this)">')
-              out.append(f'<span class="arrow">▼</span>')
-              out.append(f'<span class="module-badge" style="background:{style["bg"]};color:{style["color"]}">{style["label"]}</span>')
-              out.append(f'<span class="module-count">{len(files)}</span>')
-              out.append('</button>')
-              out.append(f'<ul class="file-list" style="max-height:{len(files)*28+10}px">')
-
-              for i, f in enumerate(files):
-                  href = f"{mod_name}/{f.name}"
-                  tag = '<span class="latest">latest</span>' if i == 0 else ""
-                  out.append(f'<li><a href="{href}" onclick="loadReport(event,this)" data-name="{f.name}">{f.stem}{tag}</a></li>')
-
-              out.append('</ul></div>')
-
-          out.append(f"""
-          <div style="padding:12px 16px;border-top:1px solid #f0f0f0;margin-top:auto;font-size:11px;color:#bbb">
-            Updated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC
-          </div>
-          </div>
-          <div class="main">
-            <div class="toolbar">
-              <span>Report:</span>
-              <span class="path" id="currentPath">Select a report from the sidebar</span>
-            </div>
-            <div class="empty" id="placeholder">← Select a report to view</div>
-            <iframe id="viewer" style="display:none"></iframe>
-          </div>
-          <script>
-          function toggleModule(btn){{
-            btn.classList.toggle('collapsed');
-            const list=btn.nextElementSibling;
-            list.classList.toggle('collapsed');
-          }}
-          """)
-
-          # Embed all file paths as JS for plan view lookup
-          all_files = {}
-          for mod_dir in modules:
-              if mod_dir.name == "plans":
-                  continue
-              mod_name = mod_dir.name
-              for f in sorted(mod_dir.iterdir(), key=lambda x: x.name, reverse=True):
-                  if f.is_file():
-                      if mod_name not in all_files:
-                          all_files[mod_name] = []
-                      all_files[mod_name].append(f"{mod_name}/{f.name}")
-          out.append(f"const allFiles={_json.dumps(all_files)};")
-
-          out.append("""
-          function loadPlanView(e,planName){{
-            e.preventDefault();
-            const html=['<html><body style="font-family:-apple-system,sans-serif;padding:24px;background:#fafafa">'];
-            html.push('<h2 style="margin-bottom:16px">Plan: '+planName+'</h2>');
-            html.push('<table style="border-collapse:collapse;width:100%">');
-            html.push('<tr style="background:#f8f9fa"><th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb">Module</th><th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb">Report</th><th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb">Time</th></tr>');
-            Object.keys(allFiles).sort().forEach(mod=>{{
-              allFiles[mod].forEach(f=>{{
-                const fname=f.split('/').pop();
-                if(fname.startsWith(planName+'-')){{
-                  const time=fname.replace(planName+'-','').replace('.html','');
-                  html.push('<tr><td style="padding:8px;border-bottom:1px solid #f0f0f0;font-weight:600">'+mod+'</td>');
-                  html.push('<td style="padding:8px;border-bottom:1px solid #f0f0f0"><a href="'+f+'" target="_blank" style="color:#2563eb">'+fname+'</a></td>');
-                  html.push('<td style="padding:8px;border-bottom:1px solid #f0f0f0;color:#999">'+time+'</td></tr>');
-                }}
-              }});
-            }});
-            html.push('</table></body></html>');
-            const blob=new Blob([html.join('')],{{type:'text/html'}});
-            document.getElementById('viewer').src=URL.createObjectURL(blob);
-            document.getElementById('viewer').style.display='block';
-            document.getElementById('placeholder').style.display='none';
-            document.getElementById('currentPath').textContent='Plan: '+planName;
-          }}
-          function loadReport(e,el){{
-            e.preventDefault();
-            document.querySelectorAll('.file-list a').forEach(a=>a.classList.remove('active'));
-            el.classList.add('active');
-            const href=el.getAttribute('href');
-            document.getElementById('viewer').src=href;
-            document.getElementById('viewer').style.display='block';
-            document.getElementById('placeholder').style.display='none';
-            document.getElementById('currentPath').textContent=href;
-          }}
-          document.getElementById('search').addEventListener('input',function(){{
-            const q=this.value.toLowerCase();
-            document.querySelectorAll('.module-group').forEach(g=>{{
-              let hasMatch=false;
-              g.querySelectorAll('.file-list a').forEach(a=>{{
-                const match=a.dataset.name.toLowerCase().includes(q)||g.dataset.module.toLowerCase().includes(q);
-                a.parentElement.classList.toggle('hidden',!match);
-                if(match)hasMatch=true;
-              }});
-              g.classList.toggle('hidden',!hasMatch);
-              if(hasMatch&&q){{
-                g.querySelector('.file-list').classList.remove('collapsed');
-                g.querySelector('.module-toggle').classList.remove('collapsed');
-              }}
-            }});
-          }});
-          </script>
-          </body></html>""")
-          Path("index.html").write_text("\n".join(out))
-          print(f"Generated index.html with {len(modules)} modules")
-          PYSCRIPT
+        run: REPORTS_DIR=reports python3 orchestrator/scripts/generate-index.py
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
