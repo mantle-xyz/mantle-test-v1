@@ -53,7 +53,7 @@ def main():
         for i, pname in enumerate(sorted(plans.keys(), reverse=True)):
             desc = plans[pname].get("description", pname)
             latest = ' <span class="tag">latest</span>' if i == 0 else ""
-            items += f'<li><a href="#" onclick="showPlan(\'{pname}\')" data-search="{pname} {desc}">{pname}{latest}</a></li>\n'
+            items += f'<li><a href="javascript:void(0)" onclick="showPlan(\'{pname}\')" data-search="{pname} {desc}">{pname}{latest}</a></li>\n'
         sidebar_items.append(("Test Plans", "#991b1b", "#fef2f2", items, len(plans)))
 
     # Module sections
@@ -64,7 +64,7 @@ def main():
             fname = f.split("/")[-1]
             display = fname.replace(".html", "")
             latest = ' <span class="tag">latest</span>' if i == 0 else ""
-            items += f'<li><a href="#" onclick="showReport(\'{f}\')" data-search="{mod_name} {fname}">{display}{latest}</a></li>\n'
+            items += f'<li><a href="javascript:void(0)" onclick="showReport(\'{f}\')" data-search="{mod_name} {fname}">{display}{latest}</a></li>\n'
         sidebar_items.append((s["label"], s["color"], s["bg"], items, len(files)))
 
     # Render
@@ -116,7 +116,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 .items li{{padding:1px 0}}
 .items a{{display:block;padding:6px 12px 6px 36px;font-size:14px;color:#555;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 .items a:hover{{background:#f8f9fa;color:#2563eb}}
-.items a.active{{background:#eff6ff;color:#1e40af;font-weight:600}}
+.items a.active{{background:#dbeafe;color:#1e40af;font-weight:600;border-left:3px solid #2563eb;padding-left:33px}}
 .tag{{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700;background:#dcfce7;color:#166534;vertical-align:middle;margin-left:4px}}
 .hidden{{display:none!important}}
 
@@ -129,8 +129,9 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 .sidebar-expand-btn:hover{{background:#f5f5f5;color:#2563eb}}
 .sidebar.collapsed-sidebar .sidebar-collapse-btn{{display:none}}
 .sidebar.collapsed-sidebar .sidebar-expand-btn{{display:flex;align-items:center;justify-content:center}}
-.resize-handle{{position:absolute;top:0;right:0;width:4px;height:100%;cursor:col-resize;background:transparent}}
+.resize-handle{{position:absolute;top:0;right:-4px;width:8px;height:100%;cursor:col-resize;background:transparent;z-index:10}}
 .resize-handle:hover{{background:#2563eb40}}
+.resizing iframe{{pointer-events:none}}
 
 .main{{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}}
 .toolbar{{padding:6px 16px;background:#fff;border-bottom:1px solid #e5e7eb;font-size:12px;color:#888;flex-shrink:0;display:flex;align-items:center;gap:8px}}
@@ -186,6 +187,7 @@ function toggleSidebar(){{
   handle.addEventListener('mousedown',function(e){{
     startX=e.clientX;
     startW=sb.offsetWidth;
+    document.body.classList.add('resizing');
     document.addEventListener('mousemove',onDrag);
     document.addEventListener('mouseup',stopDrag);
     e.preventDefault();
@@ -195,6 +197,7 @@ function toggleSidebar(){{
     sb.style.width=w+'px';
   }}
   function stopDrag(){{
+    document.body.classList.remove('resizing');
     document.removeEventListener('mousemove',onDrag);
     document.removeEventListener('mouseup',stopDrag);
   }}
@@ -208,24 +211,40 @@ function toggle(el){{
 
 function showReport(href){{
   document.querySelectorAll('.items a').forEach(a=>a.classList.remove('active'));
-  if(event&&event.target)event.target.classList.add('active');
+  // Find and highlight the matching sidebar link
+  document.querySelectorAll('.items a').forEach(a=>{{
+    if(a.getAttribute('onclick')&&a.getAttribute('onclick').includes(href)){{
+      a.classList.add('active');
+      // Expand parent group if collapsed
+      const group=a.closest('.group');
+      if(group){{
+        const header=group.querySelector('.group-header');
+        const list=group.querySelector('.items');
+        if(header&&header.classList.contains('collapsed')){{
+          header.classList.remove('collapsed');
+          if(list)list.style.display='block';
+        }}
+      }}
+      a.scrollIntoView({{block:'nearest'}});
+    }}
+  }});
   document.getElementById('viewer').src=href;
   document.getElementById('viewer').style.display='block';
   document.getElementById('planView').style.display='none';
   document.getElementById('empty').style.display='none';
   document.getElementById('path').textContent=href;
-  history.replaceState(null,'','#'+href);
+  location.hash=href;
 }}
 
-// Load from hash on page load (supports direct linking / refresh)
-window.addEventListener('load',function(){{
-  const hash=location.hash.slice(1);
+// Load from hash — run immediately (script is at bottom of body)
+(function(){{
+  const hash=decodeURIComponent(location.hash.slice(1));
   if(hash&&!hash.startsWith('plan:')){{
     showReport(hash);
   }}else if(hash.startsWith('plan:')){{
     showPlan(hash.slice(5));
   }}
-}});
+}})();
 
 function showPlan(name){{
   const rows=[];
@@ -246,7 +265,7 @@ function showPlan(name){{
   document.getElementById('viewer').style.display='none';
   document.getElementById('empty').style.display='none';
   document.getElementById('path').textContent='Plan: '+name;
-  history.replaceState(null,'','#plan:'+name);
+  location.hash='plan:'+name;
 }}
 
 document.getElementById('search').addEventListener('input',function(){{
