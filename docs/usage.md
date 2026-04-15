@@ -427,12 +427,30 @@ git add reports/ && git commit -m "Add report" && git push
 |------|------|------|
 | `<module>` | ✅ | 模块名（eest/execution-apis/op-e2e/op-acceptance/proxyd 等），对应 `reports/<module>/` 目录 |
 | `<report-file>` | ✅ | 本地 HTML 报告的绝对或相对路径 |
-| `--plan <plan-name>` | ❌ | 批次名前缀，生成文件名为 `<plan>-<timestamp>.html`；不填则只有时间戳 |
-| `--push` | ❌ | 复制后自动执行 `git add/commit/push`，触发 GitHub Pages 部署；不填则只在本地归档 |
+| `--plan <plan-name>` | ❌ | 批次名前缀，生成文件名为 `<plan>-<timestamp>.html`。**若 `reports/plans/<name>.json` 不存在则自动注册**（Test Plans 侧边栏显示需要此 JSON） |
+| `--plan-desc <text>` | ❌ | 自动注册 plan 时填入 description 字段（仅首次注册生效） |
+| `--plan-env <env>` | ❌ | 自动注册 plan 时填入 environment 字段（qa/mainnet 等） |
+| `--plan-trigger <text>` | ❌ | 自动注册 plan 时填入 trigger 字段（PR/Issue 编号等） |
+| `--push` | ❌ | 复制后自动执行 `git add/commit/push`，触发 GitHub Pages 部署。若本次同时新注册了 plan JSON，会一并 commit |
 
 > 时间戳为命名固定组成部分，不可去除，用于防止同名覆盖。若需要完全自定义文件名，上传后用 `mv` 重命名即可。
 >
 > `--push` 会推送到当前分支的 remote，请确认本地分支状态干净、且已配置好 git 远程凭证。
+
+**Plan 自动注册示例（首次上传即在 Test Plans 侧栏出现）**：
+
+```bash
+./orchestrator/scripts/upload-report.sh proxyd ./report.html \
+  --plan chainregression \
+  --plan-desc "Proxyd 链级回归" \
+  --plan-env qa \
+  --push
+# → reports/proxyd/chainregression-20260415-162234.html
+# → reports/plans/chainregression.json (new plan registered)
+# → git commit: "Add proxyd report + register plan (chainregression)"
+```
+
+第二次用同样 plan 上传时，脚本检测到 plan JSON 已存在，只会上传报告，不会覆盖 plan 元信息。
 
 ### 9.6 GitHub Pages 首页
 

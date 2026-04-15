@@ -64,6 +64,10 @@ Structure:
 # 例：一步闭环（cp + git add + commit + push，自动触发 Pages 部署）
 ./orchestrator/scripts/upload-report.sh eest ./report_execute.html --plan arsia-upgrade --push
 
+# 例：首次使用某个 plan 时自动注册（让它在 Test Plans 侧栏出现）
+./orchestrator/scripts/upload-report.sh eest ./report_execute.html \
+  --plan arsia-upgrade --plan-desc "Arsia 升级验收" --plan-env qa --push
+
 # 不带 --push 时需要手动发布：
 git add reports/ && git commit -m "Add eest report" && git push
 

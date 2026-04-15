@@ -3,11 +3,18 @@
 #
 # Structure: reports/<module>/<plan-name>-<timestamp>.html
 #
+# When --plan <name> is used:
+#   - The report filename is prefixed with <name>-
+#   - If reports/plans/<name>.json does NOT exist, it is auto-created (stub plan).
+#     Pass --plan-desc / --plan-env / --plan-trigger to populate plan metadata.
+#   - With --push, both the report and any newly-created plan JSON are committed
+#     together so the Test Plans sidebar on GitHub Pages reflects the new plan.
+#
 # Usage:
-#   With plan name:
+#   With plan name (auto-registers plan if not yet registered):
 #     ./orchestrator/scripts/upload-report.sh <module> <report-file> --plan <plan-name>
 #
-#   Without plan name (manual upload):
+#   Without plan name (manual upload, no plan registration):
 #     ./orchestrator/scripts/upload-report.sh <module> <report-file>
 #
 #   With auto git push (stage + commit + push to remote):
@@ -16,33 +23,46 @@
 # Examples:
 #   ./orchestrator/scripts/upload-report.sh eest report.html --plan arsia-upgrade
 #   ./orchestrator/scripts/upload-report.sh op-acceptance results.html --plan daily-qa --push
-#   ./orchestrator/scripts/upload-report.sh proxyd report.html
+#   ./orchestrator/scripts/upload-report.sh proxyd report.html --plan proxyd \
+#       --plan-desc "Proxyd chain regression" --plan-env qa --push
 
 set -euo pipefail
 
 if [ $# -lt 2 ]; then
     echo "Usage: $0 <module> <report-file> [--plan <plan-name>] [--push]"
+    echo "              [--plan-desc <text>] [--plan-env <env>] [--plan-trigger <text>]"
     echo ""
     echo "Examples:"
     echo "  $0 eest ./report.html --plan arsia-upgrade"
     echo "  $0 op-acceptance ./results.html --plan daily-qa --push"
-    echo "  $0 proxyd ./report.html"
+    echo "  $0 proxyd ./report.html --plan proxyd --plan-desc 'Proxyd regression' --push"
     echo ""
     echo "Flags:"
-    echo "  --plan <name>   Prefix filename with plan name (reports/<module>/<plan>-<ts>.html)"
-    echo "  --push          After copy, auto git add/commit/push to remote (publishes via GitHub Pages)"
+    echo "  --plan <name>         Prefix filename and auto-register plan if not yet registered"
+    echo "                        (creates reports/plans/<name>.json with stub metadata)"
+    echo "  --plan-desc <text>    Description for auto-created plan (only used on first registration)"
+    echo "  --plan-env <env>      Environment for auto-created plan (e.g. qa, mainnet)"
+    echo "  --plan-trigger <txt>  Trigger info for auto-created plan (e.g. 'PR #123')"
+    echo "  --push                After copy, auto git add/commit/push to remote"
+    echo "                        (publishes via GitHub Pages; includes new plan JSON if created)"
     exit 1
 fi
 
 MODULE="$1"
 REPORT_FILE="$2"
 PLAN_NAME=""
+PLAN_DESC=""
+PLAN_ENV=""
+PLAN_TRIGGER=""
 DO_PUSH=false
 
 shift 2
 while [ $# -gt 0 ]; do
     case "$1" in
         --plan) PLAN_NAME="$2"; shift 2 ;;
+        --plan-desc) PLAN_DESC="$2"; shift 2 ;;
+        --plan-env) PLAN_ENV="$2"; shift 2 ;;
+        --plan-trigger) PLAN_TRIGGER="$2"; shift 2 ;;
         --push) DO_PUSH=true; shift ;;
         *) shift ;;
     esac
@@ -70,6 +90,31 @@ TARGET_PATH="${TARGET_DIR}/${FILENAME}"
 cp "$REPORT_FILE" "$TARGET_PATH"
 echo "  → reports/${MODULE}/${FILENAME}"
 
+# Auto-register plan if --plan specified and plan JSON not yet exists
+PLAN_CREATED=false
+PLAN_JSON_RELPATH=""
+if [ -n "$PLAN_NAME" ]; then
+    PLANS_DIR="${PROJECT_ROOT}/reports/plans"
+    PLAN_JSON="${PLANS_DIR}/${PLAN_NAME}.json"
+    PLAN_JSON_RELPATH="reports/plans/${PLAN_NAME}.json"
+    if [ ! -f "$PLAN_JSON" ]; then
+        mkdir -p "$PLANS_DIR"
+        cat > "$PLAN_JSON" << EOF
+{
+  "name": "${PLAN_NAME}",
+  "description": "${PLAN_DESC}",
+  "created": "${TIMESTAMP}",
+  "environment": "${PLAN_ENV}",
+  "trigger": "${PLAN_TRIGGER}"
+}
+EOF
+        PLAN_CREATED=true
+        echo "  → ${PLAN_JSON_RELPATH} (new plan registered)"
+    else
+        echo "  · plan '${PLAN_NAME}' already registered — skipping"
+    fi
+fi
+
 if [ "$DO_PUSH" = true ]; then
     echo ""
     echo "Publishing via git..."
@@ -82,10 +127,17 @@ if [ "$DO_PUSH" = true ]; then
 
     COMMIT_MSG="Add ${MODULE} report"
     if [ -n "$PLAN_NAME" ]; then
-        COMMIT_MSG="Add ${MODULE} report (${PLAN_NAME})"
+        if [ "$PLAN_CREATED" = true ]; then
+            COMMIT_MSG="Add ${MODULE} report + register plan (${PLAN_NAME})"
+        else
+            COMMIT_MSG="Add ${MODULE} report (${PLAN_NAME})"
+        fi
     fi
 
     git add "reports/${MODULE}/${FILENAME}"
+    if [ "$PLAN_CREATED" = true ]; then
+        git add "$PLAN_JSON_RELPATH"
+    fi
     git commit -m "$COMMIT_MSG"
     git push
     echo "  ✓ Pushed: ${COMMIT_MSG}"

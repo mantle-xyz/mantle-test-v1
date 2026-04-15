@@ -1,0 +1,7 @@
+{
+  "name": "proxyd",
+  "description": "Proxyd chain regression",
+  "created": "20260415-162234",
+  "environment": "qa",
+  "trigger": ""
+}
