@@ -45,11 +45,26 @@ cd orchestrator && go build -o bin/mantle-test ./cmd/mantle-test/
 
 Reports: `https://mantle-xyz.github.io/mantle-test-v1/`
 
-Structure: `reports/<module>/<timestamp>.html`
+Structure:
+- `reports/<module>/<timestamp>.html` (no plan name)
+- `reports/<module>/<plan-name>-<timestamp>.html` (with `--plan`)
 
 ```bash
 # 1. Manual 手动上传
+./orchestrator/scripts/upload-report.sh <module> <report-file> [--plan <plan-name>] [--push]
+
+# 例：不带 plan 名，只复制到本地仓库
 ./orchestrator/scripts/upload-report.sh eest ./report_execute.html
+# → reports/eest/20260415-144849.html （仅 cp，需自行 git push）
+
+# 例：带 --plan 名（推荐，便于区分批次）
+./orchestrator/scripts/upload-report.sh eest ./report_execute.html --plan arsia-upgrade
+# → reports/eest/arsia-upgrade-20260415-144849.html
+
+# 例：一步闭环（cp + git add + commit + push，自动触发 Pages 部署）
+./orchestrator/scripts/upload-report.sh eest ./report_execute.html --plan arsia-upgrade --push
+
+# 不带 --push 时需要手动发布：
 git add reports/ && git commit -m "Add eest report" && git push
 
 # 2. CI auto-push: module CI pushes to reports/ directly (see docs/usage.md §9.3)

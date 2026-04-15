@@ -399,15 +399,40 @@ mantle-test-v1 的 `pages.yml` 收到 `module-ci-complete` 事件后，自动下
 ### 9.5 手动上传
 
 ```bash
-# 上传 EEST 报告
+# 基本用法：upload-report.sh <module> <report-file> [--plan <plan-name>] [--push]
+
+# 不带 plan 名 → reports/<module>/<timestamp>.html（仅 cp，需自行 git push）
 ./orchestrator/scripts/upload-report.sh eest /Users/user/space/mantle-execution-specs/execution_results/report_execute.html
+# → reports/eest/20260415-144849.html
 
-# 上传 op-acceptance 报告
-./orchestrator/scripts/upload-report.sh op-acceptance /Users/user/space/mantle-v2/op-acceptance-tests/logs/testrun-*/results.html
+# 带 --plan 名 → reports/<module>/<plan-name>-<timestamp>.html（推荐，便于区分批次）
+./orchestrator/scripts/upload-report.sh eest ./report_execute.html --plan arsia-upgrade
+# → reports/eest/arsia-upgrade-20260415-144849.html
 
-# 推送触发 Pages 部署
+./orchestrator/scripts/upload-report.sh proxyd ./report.html --plan chainregression
+# → reports/proxyd/chainregression-20260415-144849.html
+
+# 一步闭环：--push 自动执行 git add + commit + push（触发 Pages 部署）
+./orchestrator/scripts/upload-report.sh op-acceptance ./results.html --plan daily-qa --push
+# → reports/op-acceptance/daily-qa-20260415-144849.html
+# → git commit -m "Add op-acceptance report (daily-qa)" && git push
+
+# 不带 --push 时，需手动执行发布：
 git add reports/ && git commit -m "Add report" && git push
 ```
+
+**参数说明**：
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `<module>` | ✅ | 模块名（eest/execution-apis/op-e2e/op-acceptance/proxyd 等），对应 `reports/<module>/` 目录 |
+| `<report-file>` | ✅ | 本地 HTML 报告的绝对或相对路径 |
+| `--plan <plan-name>` | ❌ | 批次名前缀，生成文件名为 `<plan>-<timestamp>.html`；不填则只有时间戳 |
+| `--push` | ❌ | 复制后自动执行 `git add/commit/push`，触发 GitHub Pages 部署；不填则只在本地归档 |
+
+> 时间戳为命名固定组成部分，不可去除，用于防止同名覆盖。若需要完全自定义文件名，上传后用 `mv` 重命名即可。
+>
+> `--push` 会推送到当前分支的 remote，请确认本地分支状态干净、且已配置好 git 远程凭证。
 
 ### 9.6 GitHub Pages 首页
 
