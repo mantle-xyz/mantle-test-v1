@@ -399,23 +399,24 @@ mantle-test-v1 的 `pages.yml` 收到 `module-ci-complete` 事件后，自动下
 ### 9.5 手动上传
 
 ```bash
-# 基本用法：upload-report.sh <module> <report-file> [--plan <plan-name>] [--push]
+# 基本用法：upload-report.sh <module> <report-file> [--env <env>] [--plan <plan-name>] [--push]
 
-# 不带 plan 名 → reports/<module>/<timestamp>.html（仅 cp，需自行 git push）
-./orchestrator/scripts/upload-report.sh eest /Users/user/space/mantle-execution-specs/execution_results/report_execute.html
-# → reports/eest/20260415-144849.html
+# 完整闭环（推荐）：env 维度 + plan 前缀 + 自动 push
+./orchestrator/scripts/upload-report.sh proxyd ./report_full_20260415_161256.html \
+  --env qa3 --plan proxyd --push
+# → reports/proxyd/qa3/proxyd-report_full_20260415_161256.html
+# → git commit + push，自动触发 GitHub Pages 部署
 
-# 带 --plan 名 → reports/<module>/<plan-name>-<timestamp>.html（推荐，便于区分批次）
-./orchestrator/scripts/upload-report.sh eest ./report_execute.html --plan arsia-upgrade
-# → reports/eest/arsia-upgrade-20260415-144849.html
+# 首次用某 plan 时自动注册（plan JSON 不存在会被创建，决定 Test Plans 侧栏是否显示）
+./orchestrator/scripts/upload-report.sh eest ./report_execute.html \
+  --env sepolia --plan arsia-upgrade \
+  --plan-desc "Arsia 升级验收" --push
+# → reports/eest/sepolia/arsia-upgrade-report_execute.html
+# → reports/plans/arsia-upgrade.json (new plan registered)
 
-./orchestrator/scripts/upload-report.sh proxyd ./report.html --plan chainregression
-# → reports/proxyd/chainregression-20260415-144849.html
-
-# 一步闭环：--push 自动执行 git add + commit + push（触发 Pages 部署）
-./orchestrator/scripts/upload-report.sh op-acceptance ./results.html --plan daily-qa --push
-# → reports/op-acceptance/daily-qa-20260415-144849.html
-# → git commit -m "Add op-acceptance report (daily-qa)" && git push
+# 不带 --env（向后兼容，落到模块根目录；不推荐新增）
+./orchestrator/scripts/upload-report.sh op-acceptance ./results.html --plan daily-qa
+# → reports/op-acceptance/daily-qa-results.html
 
 # 不带 --push 时，需手动执行发布：
 git add reports/ && git commit -m "Add report" && git push
@@ -427,30 +428,63 @@ git add reports/ && git commit -m "Add report" && git push
 |------|------|------|
 | `<module>` | ✅ | 模块名（eest/execution-apis/op-e2e/op-acceptance/proxyd 等），对应 `reports/<module>/` 目录 |
 | `<report-file>` | ✅ | 本地 HTML 报告的绝对或相对路径 |
-| `--plan <plan-name>` | ❌ | 批次名前缀，生成文件名为 `<plan>-<timestamp>.html`。**若 `reports/plans/<name>.json` 不存在则自动注册**（Test Plans 侧边栏显示需要此 JSON） |
-| `--plan-desc <text>` | ❌ | 自动注册 plan 时填入 description 字段（仅首次注册生效） |
-| `--plan-env <env>` | ❌ | 自动注册 plan 时填入 environment 字段（qa/mainnet 等） |
-| `--plan-trigger <text>` | ❌ | 自动注册 plan 时填入 trigger 字段（PR/Issue 编号等） |
-| `--push` | ❌ | 复制后自动执行 `git add/commit/push`，触发 GitHub Pages 部署。若本次同时新注册了 plan JSON，会一并 commit |
+| `--env <env>` | ❌ | 环境名（qa/qa3/sepolia/mainnet 等）。报告存到 `reports/<module>/<env>/`，sidebar 按三级树展示。不填走 legacy flat 模式 |
+| `--plan <plan-name>` | ❌ | 文件名前缀；若 `reports/plans/<name>.json` 不存在则自动注册 |
+| `--plan-desc <text>` | ❌ | 自动注册 plan 时填入 description（仅首次注册生效） |
+| `--plan-env <env>` | ❌ | plan JSON 里的默认环境字段；未传 `--env` 时也会作为存储目录 |
+| `--plan-trigger <text>` | ❌ | 自动注册 plan 时填入 trigger（PR/Issue 编号等） |
+| `--push` | ❌ | 自动执行 `git add/commit/push`，触发 GitHub Pages 部署 |
 
-> 时间戳为命名固定组成部分，不可去除，用于防止同名覆盖。若需要完全自定义文件名，上传后用 `mv` 重命名即可。
->
+**文件命名规则**：
+
+- **保留原文件名**，只在前面加 `<plan>-` 前缀（不会覆盖源文件里的时间戳等信息）
+  - 例：`report_full_20260415_161256.html` + `--plan proxyd` → `proxyd-report_full_20260415_161256.html`
+- 不传 `--plan` 时完全保留原名：`report_full_20260415_161256.html` → `report_full_20260415_161256.html`
+- **同名冲突**时自动追加 `-<timestamp>` 后缀避免覆盖：
+  `proxyd-report_full_20260415_161256.html` → `proxyd-report_full_20260415_161256-20260415-170312.html`
+
 > `--push` 会推送到当前分支的 remote，请确认本地分支状态干净、且已配置好 git 远程凭证。
 
-**Plan 自动注册示例（首次上传即在 Test Plans 侧栏出现）**：
+**目录结构示例**：
 
-```bash
-./orchestrator/scripts/upload-report.sh proxyd ./report.html \
-  --plan chainregression \
-  --plan-desc "Proxyd 链级回归" \
-  --plan-env qa \
-  --push
-# → reports/proxyd/chainregression-20260415-162234.html
-# → reports/plans/chainregression.json (new plan registered)
-# → git commit: "Add proxyd report + register plan (chainregression)"
+```
+reports/
+├── proxyd/
+│   ├── qa/
+│   │   └── proxyd-report_full_20260415_161256.html
+│   ├── qa3/
+│   │   └── proxyd-report_full_20260415_170000.html
+│   └── sepolia/
+│       └── proxyd-report_full_20260416_090000.html
+├── op-acceptance/
+│   └── qa/
+│       └── daily-qa-results.html
+└── plans/
+    ├── proxyd.json
+    └── arsia-upgrade.json
 ```
 
-第二次用同样 plan 上传时，脚本检测到 plan JSON 已存在，只会上传报告，不会覆盖 plan 元信息。
+**Sidebar 三级树展示**：
+
+```
+Test Plans                    2
+  arsia-upgrade [sepolia]
+  proxyd [qa]
+
+proxyd                        3
+  ├─ qa                       1
+  │    proxyd-report_full_20260415_161256
+  ├─ qa3                      1
+  │    proxyd-report_full_20260415_170000
+  └─ sepolia                  1
+       proxyd-report_full_20260416_090000
+
+acceptance                    1
+  └─ qa                       1
+       daily-qa-results
+```
+
+点击 Test Plans 下的某个 plan 时，详情页会按 env 分组展示该 plan 下的所有报告（跨 module/env 聚合）。
 
 ### 9.6 GitHub Pages 首页
 

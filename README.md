@@ -45,28 +45,33 @@ cd orchestrator && go build -o bin/mantle-test ./cmd/mantle-test/
 
 Reports: `https://mantle-xyz.github.io/mantle-test-v1/`
 
-Structure:
-- `reports/<module>/<timestamp>.html` (no plan name)
-- `reports/<module>/<plan-name>-<timestamp>.html` (with `--plan`)
+Structure (three-level hierarchy: module → env → report):
+- `reports/<module>/<env>/<plan-name>-<original-filename>` (preferred, with `--env`)
+- `reports/<module>/<plan-name>-<original-filename>` (legacy flat layout, no `--env`)
+
+**File naming**: the script preserves the original filename and only **prepends** `<plan>-`
+as a prefix. The source timestamp embedded in the original name (e.g.
+`report_full_20260415_161256.html`) is kept intact. If a file of the same name
+already exists, a `-<timestamp>` suffix is appended to avoid overwrite.
 
 ```bash
 # 1. Manual 手动上传
-./orchestrator/scripts/upload-report.sh <module> <report-file> [--plan <plan-name>] [--push]
+./orchestrator/scripts/upload-report.sh <module> <report-file> \
+    [--env <env>] [--plan <plan-name>] [--push]
 
-# 例：不带 plan 名，只复制到本地仓库
-./orchestrator/scripts/upload-report.sh eest ./report_execute.html
-# → reports/eest/20260415-144849.html （仅 cp，需自行 git push）
+# 例：完整闭环（推荐）—— env 维度 + plan 前缀 + 自动 push
+./orchestrator/scripts/upload-report.sh proxyd ./report_full_20260415_161256.html \
+  --env qa3 --plan proxyd --push
+# → reports/proxyd/qa3/proxyd-report_full_20260415_161256.html
+# → 自动 commit + push，触发 GitHub Pages 部署
 
-# 例：带 --plan 名（推荐，便于区分批次）
-./orchestrator/scripts/upload-report.sh eest ./report_execute.html --plan arsia-upgrade
-# → reports/eest/arsia-upgrade-20260415-144849.html
-
-# 例：一步闭环（cp + git add + commit + push，自动触发 Pages 部署）
-./orchestrator/scripts/upload-report.sh eest ./report_execute.html --plan arsia-upgrade --push
-
-# 例：首次使用某个 plan 时自动注册（让它在 Test Plans 侧栏出现）
+# 例：首次使用某 plan 时自动注册（让它在 Test Plans 侧栏出现）
 ./orchestrator/scripts/upload-report.sh eest ./report_execute.html \
-  --plan arsia-upgrade --plan-desc "Arsia 升级验收" --plan-env qa --push
+  --env sepolia --plan arsia-upgrade \
+  --plan-desc "Arsia 升级验收" --push
+
+# 例：不带 --env（向后兼容，落到 reports/<module>/ 根目录，不推荐新用法）
+./orchestrator/scripts/upload-report.sh eest ./report_execute.html --plan arsia-upgrade
 
 # 不带 --push 时需要手动发布：
 git add reports/ && git commit -m "Add eest report" && git push

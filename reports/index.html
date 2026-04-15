@@ -9,7 +9,7 @@
 html,body{height:100%;overflow:hidden}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;background:#f5f5f5;color:#333}
 
-.sidebar{width:300px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative;transition:width 0.2s;flex-shrink:0}
+.sidebar{width:320px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative;transition:width 0.2s;flex-shrink:0}
 .sidebar-header{padding:14px 16px 10px;border-bottom:1px solid #f0f0f0;flex-shrink:0}
 .sidebar-header h1{font-size:18px;font-weight:700}
 .search{margin:10px 12px;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;outline:none;width:calc(100% - 24px)}
@@ -25,13 +25,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;d
 .count{margin-left:auto;font-size:13px;color:#bbb}
 
 .items{list-style:none;overflow:hidden;transition:max-height .2s ease}
-.group-header.collapsed+.items{max-height:0!important;overflow:hidden}
+.group-header.collapsed+.items,.group-header.collapsed+.env-groups{max-height:0!important;display:none!important;overflow:hidden}
 .items li{padding:1px 0}
 .items a{display:block;padding:6px 12px 6px 36px;font-size:14px;color:#555;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .items a:hover{background:#f8f9fa;color:#2563eb}
-.items a.active{background:#dbeafe;color:#1e40af;font-weight:600;border-left:3px solid #2563eb;padding-left:33px}
+.items a.active,.env-items a.active{background:#dbeafe;color:#1e40af;font-weight:600;border-left:3px solid #2563eb;padding-left:33px}
 .tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700;background:#dcfce7;color:#166534;vertical-align:middle;margin-left:4px}
+.env-chip{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#e0f2fe;color:#0369a1;vertical-align:middle;margin-left:4px}
 .hidden{display:none!important}
+
+/* Env sub-groups inside a module */
+.env-groups{overflow:hidden;transition:max-height .2s ease}
+.env-group{border-top:1px solid #fafafa}
+.env-header{display:flex;align-items:center;padding:5px 12px 5px 32px;cursor:pointer;user-select:none;font-size:13px}
+.env-header:hover{background:#fafafa}
+.env-header.collapsed .chevron{transform:rotate(-90deg)}
+.env-badge{padding:2px 8px;border-radius:8px;font-size:12px;font-weight:600}
+.env-items{list-style:none;overflow:hidden;transition:max-height .2s ease}
+.env-header.collapsed+.env-items{max-height:0!important;display:none!important;overflow:hidden}
+.env-items li{padding:1px 0}
+.env-items a{display:block;padding:5px 12px 5px 56px;font-size:13px;color:#555;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.env-items a:hover{background:#f8f9fa;color:#2563eb}
 
 .sidebar-footer{padding:8px 12px;border-top:1px solid #f0f0f0;font-size:10px;color:#ccc;flex-shrink:0}
 .sidebar.collapsed-sidebar{width:40px;min-width:40px;overflow:hidden}
@@ -51,6 +65,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;d
 .toolbar .path{color:#333;font-weight:600}
 .viewer{flex:1;border:none;width:100%}
 .empty{flex:1;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:13px}
+
+.plan-section{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:16px}
+.plan-section-header{padding:10px 14px;font-weight:600;font-size:14px;background:#f8f9fa;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:8px}
 </style>
 </head>
 <body>
@@ -65,9 +82,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;d
           <div class="group-header " onclick="toggle(this)">
             <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
             <span class="badge" style="background:#fef2f2;color:#991b1b">Test Plans</span>
-            <span class="count">1</span>
+            <span class="count">2</span>
           </div>
-          <ul class="items"><li><a href="javascript:void(0)" onclick="showPlan('pages-test')" data-search="pages-test Pages 功能验证">pages-test <span class="tag">latest</span></a></li>
+          <ul class="items"><li><a href="javascript:void(0)" onclick="showPlan('proxyd')" data-search="proxyd Proxyd chain regression qa">proxyd <span class="env-chip">qa</span> <span class="tag">latest</span></a></li>
+<li><a href="javascript:void(0)" onclick="showPlan('pages-test')" data-search="pages-test Pages 功能验证 qa">pages-test <span class="env-chip">qa</span></a></li>
 </ul>
         </div>
         <div class="group">
@@ -76,20 +94,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;d
             <span class="badge" style="background:#fdf4ff;color:#7e22ce">acceptance</span>
             <span class="count">3</span>
           </div>
-          <ul class="items" style="display:none"><li><a href="javascript:void(0)" onclick="showReport('op-acceptance/pages-test-20260414-163328.html')" data-search="op-acceptance pages-test-20260414-163328.html">pages-test-20260414-163328 <span class="tag">latest</span></a></li>
-<li><a href="javascript:void(0)" onclick="showReport('op-acceptance/20260214-162644.html')" data-search="op-acceptance 20260214-162644.html">20260214-162644</a></li>
-<li><a href="javascript:void(0)" onclick="showReport('op-acceptance/20260214-013057.html')" data-search="op-acceptance 20260214-013057.html">20260214-013057</a></li>
-</ul>
+          <div class="env-groups" style="display:none"><div class="env-group">  <div class="env-header" onclick="toggleEnv(this)">    <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>    <span class="env-badge" style="background:#ccfbf1;color:#0f766e">qa</span>    <span class="count">1</span>  </div>  <ul class="env-items"><li><a href="javascript:void(0)" onclick="showReport('op-acceptance/qa/pages-test-20260414-163328.html')" data-search="qa pages-test-20260414-163328.html">pages-test-20260414-163328 <span class="tag">latest</span></a></li>
+</ul></div><div class="env-group">  <div class="env-header" onclick="toggleEnv(this)">    <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>    <span class="env-badge" style="background:#f3f4f6;color:#4b5563">(root)</span>    <span class="count">2</span>  </div>  <ul class="env-items"><li><a href="javascript:void(0)" onclick="showReport('op-acceptance/20260214-162644.html')" data-search=" 20260214-162644.html">20260214-162644 <span class="tag">latest</span></a></li>
+<li><a href="javascript:void(0)" onclick="showReport('op-acceptance/20260214-013057.html')" data-search=" 20260214-013057.html">20260214-013057</a></li>
+</ul></div></div>
         </div>
         <div class="group">
           <div class="group-header collapsed" onclick="toggle(this)">
             <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
             <span class="badge" style="background:#f0f9ff;color:#0369a1">proxyd</span>
-            <span class="count">2</span>
+            <span class="count">1</span>
           </div>
-          <ul class="items" style="display:none"><li><a href="javascript:void(0)" onclick="showReport('proxyd/pages-test-20260414-163328.html')" data-search="proxyd pages-test-20260414-163328.html">pages-test-20260414-163328 <span class="tag">latest</span></a></li>
-<li><a href="javascript:void(0)" onclick="showReport('proxyd/20260414-143742.html')" data-search="proxyd 20260414-143742.html">20260414-143742</a></li>
-</ul>
+          <div class="env-groups" style="display:none"><div class="env-group">  <div class="env-header" onclick="toggleEnv(this)">    <svg class="chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>    <span class="env-badge" style="background:#ccfbf1;color:#0f766e">qa</span>    <span class="count">1</span>  </div>  <ul class="env-items"><li><a href="javascript:void(0)" onclick="showReport('proxyd/qa/proxyd-report_full_20260415_161256.html')" data-search="qa proxyd-report_full_20260415_161256.html">proxyd-report_full_20260415_161256 <span class="tag">latest</span></a></li>
+</ul></div></div>
         </div>
   </div>
   <button class="sidebar-collapse-btn" onclick="toggleSidebar()">◀ Collapse</button>
@@ -101,15 +118,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;d
     <span>Report:</span>
     <span class="path" id="path">Select a report</span>
   </div>
-  <div class="empty" id="empty">Select a report from the sidebar</div>
+  <div class="empty" id="empty">Select a report from the sidebar — 2 modules, 4 reports, 2 plans</div>
   <div id="planView" style="display:none;padding:24px;overflow-y:auto;flex:1"></div>
   <iframe class="viewer" id="viewer" style="display:none"></iframe>
 </div>
 
 <script>
-const allFiles={"op-acceptance": ["op-acceptance/pages-test-20260414-163328.html", "op-acceptance/20260214-162644.html", "op-acceptance/20260214-013057.html"], "proxyd": ["proxyd/pages-test-20260414-163328.html", "proxyd/20260414-143742.html"]};
+const allFiles={"op-acceptance": {"": ["op-acceptance/20260214-162644.html", "op-acceptance/20260214-013057.html"], "qa": ["op-acceptance/qa/pages-test-20260414-163328.html"]}, "proxyd": {"qa": ["proxyd/qa/proxyd-report_full_20260415_161256.html"]}};
 
-let lastWidth=300;
+let lastWidth=320;
 function toggleSidebar(){
   const sb=document.getElementById('sidebar');
   if(sb.classList.contains('collapsed-sidebar')){
@@ -136,7 +153,7 @@ function toggleSidebar(){
     e.preventDefault();
   });
   function onDrag(e){
-    const w=Math.max(200,Math.min(600,startW+(e.clientX-startX)));
+    const w=Math.max(220,Math.min(600,startW+(e.clientX-startX)));
     sb.style.width=w+'px';
   }
   function stopDrag(){
@@ -151,23 +168,41 @@ function toggle(el){
   const list=el.nextElementSibling;
   if(list)list.style.display=el.classList.contains('collapsed')?'none':'block';
 }
+function toggleEnv(el){
+  el.classList.toggle('collapsed');
+  const list=el.nextElementSibling;
+  if(list)list.style.display=el.classList.contains('collapsed')?'none':'block';
+}
+
+function expandTo(anchor){
+  // Walk up: expand env-group AND module group
+  const envGroup=anchor.closest('.env-group');
+  if(envGroup){
+    const envHeader=envGroup.querySelector('.env-header');
+    const envList=envGroup.querySelector('.env-items');
+    if(envHeader&&envHeader.classList.contains('collapsed')){
+      envHeader.classList.remove('collapsed');
+      if(envList)envList.style.display='block';
+    }
+  }
+  const group=anchor.closest('.group');
+  if(group){
+    const header=group.querySelector('.group-header');
+    const inner=header&&header.nextElementSibling;
+    if(header&&header.classList.contains('collapsed')){
+      header.classList.remove('collapsed');
+      if(inner)inner.style.display='block';
+    }
+  }
+}
 
 function showReport(href){
-  document.querySelectorAll('.items a').forEach(a=>a.classList.remove('active'));
-  // Find and highlight the matching sidebar link
-  document.querySelectorAll('.items a').forEach(a=>{
-    if(a.getAttribute('onclick')&&a.getAttribute('onclick').includes(href)){
+  document.querySelectorAll('.items a, .env-items a').forEach(a=>a.classList.remove('active'));
+  document.querySelectorAll('.items a, .env-items a').forEach(a=>{
+    const onclick=a.getAttribute('onclick')||'';
+    if(onclick.includes("'"+href+"'")){
       a.classList.add('active');
-      // Expand parent group if collapsed
-      const group=a.closest('.group');
-      if(group){
-        const header=group.querySelector('.group-header');
-        const list=group.querySelector('.items');
-        if(header&&header.classList.contains('collapsed')){
-          header.classList.remove('collapsed');
-          if(list)list.style.display='block';
-        }
-      }
+      expandTo(a);
       a.scrollIntoView({block:'nearest'});
     }
   });
@@ -179,7 +214,7 @@ function showReport(href){
   location.hash=href;
 }
 
-// Load from hash — run immediately (script is at bottom of body)
+// Load from hash — run immediately
 (function(){
   const hash=decodeURIComponent(location.hash.slice(1));
   if(hash&&!hash.startsWith('plan:')){
@@ -190,20 +225,54 @@ function showReport(href){
 })();
 
 function showPlan(name){
-  const rows=[];
+  // Group matching reports by env: {env: [{module, path, filename}]}
+  const byEnv={};
   Object.keys(allFiles).sort().forEach(mod=>{
-    allFiles[mod].forEach(f=>{
-      const fname=f.split('/').pop();
-      if(fname.startsWith(name+'-')){
-        rows.push('<tr><td style="padding:10px 14px;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:14px">'+mod+'</td><td style="padding:10px 14px;border-bottom:1px solid #f0f0f0"><a href="'+f+'" target="_blank" style="color:#2563eb;font-size:14px">'+fname+'</a></td></tr>');
-      }
+    const envMap=allFiles[mod];
+    Object.keys(envMap).forEach(env=>{
+      envMap[env].forEach(f=>{
+        const fname=f.split('/').pop();
+        if(fname.startsWith(name+'-')){
+          const key=env||'(root)';
+          if(!byEnv[key])byEnv[key]=[];
+          byEnv[key].push({module:mod,path:f,filename:fname});
+        }
+      });
     });
   });
-  if(rows.length===0){
-    rows.push('<tr><td colspan="2" style="padding:16px;color:#999;text-align:center">No reports found for this plan</td></tr>');
+
+  const envOrder=Object.keys(byEnv).sort((a,b)=>{
+    if(a==='(root)')return 1;
+    if(b==='(root)')return -1;
+    return a.localeCompare(b);
+  });
+
+  let html='<h2 style="font-size:18px;margin-bottom:16px">Plan: '+name+'</h2>';
+  if(envOrder.length===0){
+    html+='<div style="padding:16px;color:#999;text-align:center;background:#fff;border-radius:8px">No reports found for this plan</div>';
+  }else{
+    envOrder.forEach(env=>{
+      const rows=byEnv[env].map(r=>
+        '<tr><td style="padding:10px 14px;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:14px;width:140px">'+r.module+'</td>'+
+        '<td style="padding:10px 14px;border-bottom:1px solid #f0f0f0">'+
+        '<a href="javascript:void(0)" onclick="showReport(\''+r.path+'\')" style="color:#2563eb;font-size:14px;text-decoration:none">'+r.filename+'</a></td></tr>'
+      ).join('');
+      html+='<div class="plan-section">'+
+        '<div class="plan-section-header">'+
+          '<span>Environment:</span>'+
+          '<span style="padding:2px 8px;border-radius:8px;font-size:12px;background:#e0f2fe;color:#0369a1">'+env+'</span>'+
+          '<span style="color:#999;font-size:12px;margin-left:auto">'+byEnv[env].length+' reports</span>'+
+        '</div>'+
+        '<table style="border-collapse:collapse;width:100%"><thead><tr style="background:#fafafa">'+
+          '<th style="text-align:left;padding:8px 14px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#666;font-weight:600">Module</th>'+
+          '<th style="text-align:left;padding:8px 14px;border-bottom:1px solid #e5e7eb;font-size:12px;color:#666;font-weight:600">Report</th>'+
+        '</tr></thead><tbody>'+rows+'</tbody></table>'+
+        '</div>';
+    });
   }
+
   const pv=document.getElementById('planView');
-  pv.innerHTML='<h2 style="font-size:18px;margin-bottom:16px">Plan: '+name+'</h2><table style="border-collapse:collapse;width:100%;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><tr style="background:#f8f9fa"><th style="text-align:left;padding:10px 14px;border-bottom:2px solid #e5e7eb;font-size:13px">Module</th><th style="text-align:left;padding:10px 14px;border-bottom:2px solid #e5e7eb;font-size:13px">Report</th></tr>'+rows.join('')+'</table>';
+  pv.innerHTML=html;
   pv.style.display='block';
   document.getElementById('viewer').style.display='none';
   document.getElementById('empty').style.display='none';
@@ -213,15 +282,37 @@ function showPlan(name){
 
 document.getElementById('search').addEventListener('input',function(){
   const q=this.value.toLowerCase();
+  // Search across module links, env links, and report links.
   document.querySelectorAll('.group').forEach(g=>{
-    let vis=false;
-    g.querySelectorAll('.items a').forEach(a=>{
+    let visGroup=false;
+    // Plans list: simple
+    g.querySelectorAll('.items > li a').forEach(a=>{
       const match=(a.dataset.search||'').toLowerCase().includes(q);
       a.parentElement.classList.toggle('hidden',!match);
-      if(match)vis=true;
+      if(match)visGroup=true;
     });
-    g.classList.toggle('hidden',!vis);
-    if(vis&&q)g.querySelector('.group-header').classList.remove('collapsed');
+    // Env sub-groups
+    g.querySelectorAll('.env-group').forEach(eg=>{
+      let visEnv=false;
+      eg.querySelectorAll('.env-items a').forEach(a=>{
+        const match=(a.dataset.search||'').toLowerCase().includes(q);
+        a.parentElement.classList.toggle('hidden',!match);
+        if(match)visEnv=true;
+      });
+      eg.classList.toggle('hidden',!visEnv);
+      if(visEnv){
+        visGroup=true;
+        if(q){
+          const eh=eg.querySelector('.env-header');
+          if(eh){eh.classList.remove('collapsed');const el=eh.nextElementSibling;if(el)el.style.display='block';}
+        }
+      }
+    });
+    g.classList.toggle('hidden',!visGroup);
+    if(visGroup&&q){
+      const gh=g.querySelector('.group-header');
+      if(gh){gh.classList.remove('collapsed');const inner=gh.nextElementSibling;if(inner)inner.style.display='block';}
+    }
   });
 });
 </script>
